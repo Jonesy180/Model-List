@@ -1,0 +1,482 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0a1626">
+  <meta name="description" content="A simple, private model figure list with five number fields and a tick box.">
+  <title>Model List</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <style>
+    :root { color-scheme: dark; --bg:#07121f; --panel:#102237; --panel2:#132a41; --line:#29445b; --text:#edf7fc; --muted:#9eb2c5; --accent:#53d8e9; --accent-dim:#173f4b; --green:#76e0bb; --red:#ff9b9c; --shadow:0 10px 32px #02091355; }
+    * {box-sizing:border-box}
+    html { scroll-behavior:smooth }
+    body {margin:0;min-width:300px;background: radial-gradient(circle at 85% -10%,#144159 0,transparent 33%),var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;min-height:100vh}
+    button,input,select {font:inherit}
+    button {cursor:pointer}
+    button:focus-visible,input:focus-visible,select:focus-visible {outline:3px solid var(--accent);outline-offset:3px}
+    .shell {width:min(1150px,100%);margin:0 auto;padding:22px 19px 70px}
+    header {display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:23px}
+    .brand {display:flex;align-items:center;gap:13px}
+    .logo {width:49px;height:49px;display:grid;place-items:center;border-radius:15px;color:#061521;background:linear-gradient(135deg,#7bf7e8,#36b7e3);box-shadow:0 7px 26px #22b7d527;font-size:18px;font-weight:900;letter-spacing:-1px}
+    h1,h2,p {margin:0}
+    h1 {font-size:clamp(24px,3vw,31px);font-weight:850;letter-spacing:-1.2px;line-height:1.1}
+    .subtitle {color:var(--muted);font-size:13px;margin-top:5px}
+    .actions {display:flex;gap:9px;flex-wrap:wrap}
+    .btn {appearance:none;display:inline-flex;align-items:center;justify-content:center;gap:7px;border-radius:11px;border:1px solid var(--line);background:#173149;color:var(--text);padding:10px 14px;min-height:42px;font-weight:650;transition:background .15s,border-color .15s;white-space:nowrap}
+    .btn:hover {background:#24445b;border-color:#47718b}
+    .btn.primary {background:var(--accent);border-color:var(--accent);color:#061a26;font-weight:800}
+    .btn.primary:hover {background:#8df0f1}
+    .btn.danger {color:var(--red);border-color:#70474e;background:#34252d}
+    .btn.danger:hover {background:#4b2a36}
+    .btn.tiny {font-size:12px;padding:7px 9px;min-height:33px;border-radius:8px}
+    .panel {border:1px solid var(--line);background:linear-gradient(180deg,#12263b,#102034);border-radius:17px;box-shadow:var(--shadow)}
+    .summary {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:17px}
+    .stat {padding:16px 19px}
+    .stat .number {font-size:28px;line-height:1.15;font-weight:800;font-variant-numeric:tabular-nums}
+    .stat .label {font-size:12px;color:var(--muted);margin-top:5px}
+    .stat .number.good {color:var(--green)}
+    .toolbar {display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:14px;margin-bottom:15px}
+    .toolbar-primary {display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:stretch;gap:12px;width:100%}
+    .search {position:relative;min-width:0}
+    .random-picker {min-width:0}
+    .random-picker .btn {width:100%;height:100%;min-height:43px;font-size:14px;padding:8px 7px;white-space:normal;line-height:1.2}
+    .random-picker .btn:disabled {opacity:.48;cursor:not-allowed}
+    .results-heading span:last-child {max-width:65%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .search svg {position:absolute;left:13px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--muted)}
+    .field,select {width:100%;min-height:43px;border:1px solid #3a576b;border-radius:10px;color:var(--text);background:#081b2c;padding:9px 12px;outline:none}
+    .search .field {padding-left:41px}
+    .toolbar-right {display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+    .toolbar-right label {display:flex;align-items:center;gap:7px;color:var(--muted);font-size:13px}
+    .toolbar-right select {width:auto;min-width:140px}
+    .results-heading {display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 3px 11px;color:var(--muted);font-size:13px}
+    /* A single database-style table for phones and larger screens. Its heading stays visible while scrolling rows. */
+    .table-holder {overflow:auto;max-height:min(67dvh,720px);border-radius:16px;overscroll-behavior-y:contain;scrollbar-color:#45627a #0a1b2d}
+    .table-holder:focus-visible {outline:3px solid var(--accent);outline-offset:3px}
+    table {width:100%;border-collapse:collapse;table-layout:fixed}
+    th,td {border-bottom:1px solid #294056;text-align:left;padding:9px 8px}
+    td {height:49px}
+    tr:last-child td {border-bottom:0}
+    th {position:sticky;top:0;z-index:2;color:#c8e2f0;font-size:11px;text-transform:uppercase;letter-spacing:.15px;background:#1c3c52;font-weight:800;box-shadow:0 2px 0 #456477}
+    th .head-label {display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;overflow-wrap:anywhere;line-height:1.13}
+    th:first-child,td:first-child {padding-left:14px}
+    th:last-child,td:last-child {padding-right:8px}
+    th.row-index,td.row-index {width:50px;text-align:center;padding:8px 3px!important;font-size:12px;font-variant-numeric:tabular-nums;color:var(--muted);font-weight:750}
+    th.num,td.num {width:65px;text-align:center;padding-left:2px;padding-right:2px}
+    th.tick,td.tick {width:47px;text-align:center;padding-left:2px;padding-right:5px}
+    tbody tr:nth-child(even) {background:#0c1d30}
+    tbody tr:hover {background:#18354b}
+    tbody tr.row-picked td {background:#19556a;box-shadow:inset 0 1px 0 #53d8e95e,inset 0 -1px 0 #53d8e95e}
+    tbody tr.row-picked td:first-child {color:#a8fbff;border-left:3px solid var(--accent)}
+    .name-cell {font-weight:700;min-width:0}
+    .figure-name-button {display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;overflow-wrap:anywhere;width:100%;padding:0;border:0;text-align:left;background:none;color:var(--text);font-weight:700;line-height:1.25;cursor:pointer}
+    .figure-name-button:hover {color:var(--accent);text-decoration:underline}
+    .figure-name-button:focus-visible {outline:2px solid var(--accent)}
+    .number-text {font-variant-numeric:tabular-nums;color:#d7e8f2;font-weight:650}
+    .blank {color:#648096}
+    .row-done .name-cell {color:#a7c0ce}
+    .check {appearance:none;vertical-align:middle;width:24px;height:24px;flex:none;border:2px solid #7b98a9;background:#071c2c;border-radius:7px;display:inline-grid;place-items:center;cursor:pointer;margin:0}
+    .check:checked {border-color:var(--green);background:var(--green)}
+    .check:checked:after {content:'✓';font-weight:900;color:#09251f;font-size:16px;line-height:1}
+    .check:focus-visible {outline:3px solid var(--accent);outline-offset:3px}
+    .empty {text-align:center;padding:55px 20px;color:var(--muted)}
+    .empty .symbol {font-size:35px;margin-bottom:9px}
+    .empty strong {display:block;color:var(--text);font-size:18px;margin-bottom:4px}
+    .empty p {max-width:340px;margin:0 auto 17px}
+    .footnote {margin-top:16px;color:var(--muted);font-size:12px;text-align:center}
+    dialog {width:min(530px,calc(100% - 24px));max-height:calc(100dvh - 28px);overflow-y:auto;padding:0;border:1px solid #426177;border-radius:19px;background:#112439;color:var(--text);box-shadow:0 25px 90px #000c}
+    dialog::backdrop {background:#020914c4;backdrop-filter:blur(4px)}
+    .modal-body {padding:23px}
+    .modal-head {display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:16px}
+    .modal-head h2 {font-size:21px}
+    .modal-head p {font-size:12px;color:var(--muted);margin-top:3px}
+    .close {background:transparent;border:0;color:#b5cad6;font-size:26px;line-height:1;padding:0 4px}
+    .control-label {display:block;font-size:13px;font-weight:700;margin-bottom:7px}
+    .form-row {margin-bottom:15px}
+    .number-grid {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+    .modal-footer {display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:24px}
+    .modal-footer .right {display:flex;gap:9px;margin-left:auto}
+    .hint {font-size:12px;color:var(--muted);margin-bottom:15px}
+    .divider {height:1px;background:var(--line);margin:16px 0}
+    .settings-actions {display:flex;flex-wrap:wrap;gap:8px}
+    .warning {background:#392b20;border:1px solid #9e7854;border-radius:10px;padding:10px 13px;color:#f5d4a7;margin-bottom:14px;font-size:13px}
+    .hidden {display:none!important}
+    .toast {position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translate(-50%,20px);background:#d0fff5;color:#062720;padding:11px 17px;border-radius:12px;font-weight:750;box-shadow:0 8px 30px #0008;opacity:0;pointer-events:none;transition:transform .2s,opacity .2s;max-width:calc(100% - 30px);text-align:center;z-index:10}
+    .toast.visible {opacity:1;transform:translate(-50%,0)}
+    .sr-only {position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+    @media (max-width:720px) {
+      .shell {padding:18px 13px 64px}
+      header {align-items:flex-start}
+      .brand {gap:10px}
+      .logo {width:43px;height:43px;border-radius:12px}
+      .actions {width:100%}
+      .actions .btn {flex:1}
+      .summary {gap:8px}
+      .stat {padding:13px 10px}
+      .stat .number {font-size:23px}
+      .toolbar {align-items:stretch;gap:12px;padding:12px}
+      .toolbar-primary {gap:9px}
+      .search .field {font-size:13px;padding-left:34px;padding-right:5px}
+      .search svg {left:10px;width:16px}
+      .random-picker .btn {font-size:12px;padding:7px 4px}
+      .toolbar-right {width:100%;justify-content:space-between}
+      .toolbar-right select {min-width:120px}
+      .table-holder {max-height:min(65dvh,660px)}
+      th,td {font-size:12px;padding-top:8px;padding-bottom:8px}
+      td {height:45px}
+      th:first-child,td:first-child {padding-left:9px}
+      th:last-child,td:last-child {padding-right:4px}
+      th.row-index,td.row-index {width:36px;font-size:11px;padding:7px 2px!important}
+      th.num,td.num {width:32px;font-size:12px}
+      th.tick,td.tick {width:36px}
+      .check {width:22px;height:22px;border-radius:6px}
+      .figure-name-button {font-size:12.5px}
+    }
+    @media (max-width:375px) { .number-grid {gap:9px} th,td {font-size:11.5px} }
+    @media (prefers-reduced-motion:reduce) { * {scroll-behavior:auto!important;transition:none!important} }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <div class="brand">
+        <div class="logo" aria-hidden="true">ML</div>
+        <div><h1>Model List</h1><p class="subtitle">Your figures, neatly organised.</p></div>
+      </div>
+      <div class="actions">
+        <button class="btn" id="settingsButton" type="button">⚙ Settings &amp; backup</button>
+        <button class="btn primary" id="addButton" type="button">＋ Add figure</button>
+      </div>
+    </header>
+
+    <div id="storageWarning" class="warning hidden" role="alert">Your browser is blocking local storage. Changes might not survive closing this page. Export a JSON backup before leaving.</div>
+
+    <section class="summary" aria-label="List summary">
+      <div class="panel stat"><div class="number" id="totalCount">0</div><div class="label">Total figures</div></div>
+      <div class="panel stat"><div class="number good" id="doneCount">0</div><div class="label">Ticked off</div></div>
+      <div class="panel stat"><div class="number" id="leftCount">0</div><div class="label">Not ticked</div></div>
+    </section>
+
+    <section class="panel toolbar" aria-label="Search and sort">
+      <div class="toolbar-primary">
+        <div class="search">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="10.8" cy="10.8" r="7.1"/><path d="m16 16 5 5"/></svg>
+          <label for="searchInput" class="sr-only">Search figures</label>
+          <input class="field" id="searchInput" type="search" placeholder="Search figures…" autocomplete="off">
+        </div>
+        <div class="random-picker">
+          <button class="btn" type="button" id="randomButton" aria-label="Pick a random row" disabled>🎲 No rows yet</button>
+        </div>
+      </div>
+      <div class="toolbar-right">
+        <label for="filterSelect">Show <select id="filterSelect"><option value="all">All figures</option><option value="todo">Not ticked</option><option value="done">Ticked off</option></select></label>
+        <label for="sortSelect">Sort <select id="sortSelect"><option value="az">Name A–Z</option><option value="za">Name Z–A</option><option value="new">Newest first</option><option value="old">Oldest first</option></select></label>
+      </div>
+    </section>
+
+    <div class="results-heading"><span id="resultsCount">0 figures</span><span id="randomResult" role="status" aria-live="polite">Tap a name to edit · Autosaved</span></div>
+    <section id="listSection" aria-label="Models">
+      <div id="figureTable" class="panel table-holder" tabindex="0" role="region" aria-label="Figure database, scroll for more entries"></div>
+      <div id="emptyState" class="panel empty hidden">
+        <div class="symbol" aria-hidden="true">▤</div>
+        <strong id="emptyTitle">No figures yet</strong>
+        <p id="emptyDescription">Add your first figure to get started.</p>
+        <button class="btn primary" type="button" id="emptyAddButton">＋ Add figure</button>
+      </div>
+    </section>
+    <p class="footnote">Stored on this device, in this browser. Export a backup regularly — especially before clearing browser data or moving devices.</p>
+  </div>
+
+  <dialog id="figureDialog" aria-labelledby="figureDialogTitle">
+    <form id="figureForm" class="modal-body" novalidate>
+      <div class="modal-head"><div><h2 id="figureDialogTitle">Add a figure</h2><p>Enter a name and up to five numbers from 1 to 10.</p></div><button class="close" type="button" data-close="figureDialog" aria-label="Close">×</button></div>
+      <div class="form-row"><label class="control-label" for="figureName">Model figure name *</label><input class="field" id="figureName" maxlength="200" required placeholder="e.g. Model Figure A" autocomplete="off"></div>
+      <div class="number-grid" id="numberFields"></div>
+      <div class="modal-footer"><button class="btn danger hidden" id="deleteButton" type="button">Delete</button><div class="right"><button class="btn" type="button" data-close="figureDialog">Cancel</button><button class="btn primary" type="submit" id="saveFigureButton">Save figure</button></div></div>
+    </form>
+  </dialog>
+
+  <dialog id="settingsDialog" aria-labelledby="settingsTitle">
+    <div class="modal-body">
+      <div class="modal-head"><div><h2 id="settingsTitle">Settings &amp; backup</h2><p>Make this little list your own.</p></div><button class="close" type="button" data-close="settingsDialog" aria-label="Close">×</button></div>
+      <form id="columnsForm">
+        <label class="control-label">Names of the five number columns</label>
+        <p class="hint">Leave the default labels or change them to suit your figures.</p>
+        <div class="number-grid" id="columnNameFields"></div>
+        <button class="btn" type="submit" style="margin-top:12px">Save column names</button>
+      </form>
+      <div class="divider"></div>
+      <label class="control-label">Backup &amp; export</label>
+      <p class="hint">JSON is a complete backup you can restore. CSV is a spreadsheet-friendly copy. Importing JSON replaces your current list after confirmation.</p>
+      <div class="settings-actions">
+        <button class="btn" id="exportJson" type="button">↓ Backup JSON</button>
+        <button class="btn" id="exportCsv" type="button">↓ Export CSV</button>
+        <button class="btn" id="importJson" type="button">↑ Restore JSON</button>
+      </div>
+      <input type="file" id="importFile" accept=".json,application/json" class="hidden" aria-label="Choose backup JSON file">
+      <div class="divider"></div>
+      <p class="hint" style="margin:0">No account, internet connection or sign-in needed. All information stays in your browser unless you export it.</p>
+    </div>
+  </dialog>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    (() => {
+      'use strict';
+      const STORAGE_KEY = 'model-list-v1';
+      const defaultColumns = ['Number 1','Number 2','Number 3','Number 4','Number 5'];
+      let data = {version:1,columns:[...defaultColumns],figures:[]};
+      let editingId = null;
+      let pickedId = null;
+      let toastTimer;
+      const $ = id => document.getElementById(id);
+      const escapeCSV = value => '"' + String(value ?? '').replace(/"/g,'""') + '"';
+      const makeId = () => (globalThis.crypto && typeof crypto.randomUUID === 'function') ? crypto.randomUUID() : 'figure-' + Date.now() + '-' + Math.random().toString(36).slice(2);
+      const el = (tag, cls, text) => { const node = document.createElement(tag); if (cls) node.className = cls; if (text !== undefined) node.textContent = text; return node; };
+
+      function load() {
+        try {
+          const testKey = STORAGE_KEY + '-test';
+          localStorage.setItem(testKey,'ok');localStorage.removeItem(testKey);
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (raw) data = validateData(JSON.parse(raw));
+        } catch (error) {
+          $('storageWarning').classList.remove('hidden');
+          console.warn('Local storage unavailable or backup invalid:',error);
+        }
+      }
+      function save() {
+        try { localStorage.setItem(STORAGE_KEY,JSON.stringify(data)); }
+        catch (error) { $('storageWarning').classList.remove('hidden'); console.warn('Could not save:',error); toast('Cannot save in this browser. Export a backup.'); }
+      }
+      function validateData(obj) {
+        if (!obj || typeof obj !== 'object' || !Array.isArray(obj.figures)) throw Error('Not a valid Model List backup');
+        if (obj.figures.length > 200000) throw Error('Backup has too many entries');
+        const columns = Array.isArray(obj.columns) && obj.columns.length === 5
+          ? obj.columns.map((s,i) => typeof s === 'string' && s.trim() ? s.trim().slice(0,32) : defaultColumns[i]) : [...defaultColumns];
+        const ids = new Set();
+        const figures = obj.figures.map((f,i) => {
+          if (!f || typeof f.name !== 'string' || !f.name.trim()) throw Error('Invalid figure at row ' + (i+1));
+          const values = Array.isArray(f.values) && f.values.length === 5 ? f.values.map(v => String(v ?? '').trim()) : Array(5).fill('');
+          if (values.some(v => !/^\d*$/.test(v) || v.length > 30)) throw Error('Invalid number at row ' + (i+1));
+          let id = typeof f.id === 'string' && f.id.length < 100 ? f.id : makeId();
+          if (ids.has(id)) id = makeId(); ids.add(id);
+          return {id,name:f.name.trim().slice(0,200),values,done:f.done === true,
+                  createdAt: Number.isFinite(f.createdAt) ? f.createdAt : Date.now()+i,
+                  updatedAt: Number.isFinite(f.updatedAt) ? f.updatedAt : Date.now()};
+        });
+        return {version:1,columns,figures};
+      }
+      function toast(message) {
+        clearTimeout(toastTimer);
+        $('toast').textContent = message;
+        $('toast').classList.add('visible');
+        toastTimer = setTimeout(() => $('toast').classList.remove('visible'),2600);
+      }
+      function getVisibleFigures() {
+        const search = $('searchInput').value.trim().toLocaleLowerCase();
+        const filter = $('filterSelect').value;
+        const sort = $('sortSelect').value;
+        const result = data.figures.filter(f => {
+          if (filter === 'done' && !f.done) return false;
+          if (filter === 'todo' && f.done) return false;
+          return !search || f.name.toLocaleLowerCase().includes(search) || f.values.some(v => v.toLocaleLowerCase().includes(search));
+        });
+        const compareNames = (a,b) => a.name.localeCompare(b.name,undefined,{numeric:true,sensitivity:'base'}) || a.createdAt-b.createdAt;
+        result.sort((a,b) => sort === 'za' ? -compareNames(a,b) : sort === 'new' ? b.createdAt-a.createdAt : sort === 'old' ? a.createdAt-b.createdAt : compareNames(a,b));
+        return result;
+      }
+      function setDone(id,checked) {
+        const figure = data.figures.find(f => f.id === id);
+        if (!figure) return;
+        figure.done = checked;
+        figure.updatedAt = Date.now();
+        save();render();
+      }
+      function tickNode(figure) {
+        const input = el('input','check');
+        input.type = 'checkbox';input.checked = figure.done;
+        input.setAttribute('aria-label',(figure.done ? 'Untick ' : 'Tick off ') + figure.name);
+        input.addEventListener('change',() => setDone(figure.id,input.checked));
+        return input;
+      }
+      function renderTable(figures) {
+        const holder = $('figureTable');holder.replaceChildren();
+        const table = el('table');
+        const head = el('thead'),hr = el('tr');
+        const rowHead=el('th','row-index','#');rowHead.scope='col';rowHead.title='Row number in the current view';hr.append(rowHead);
+        const nameHead = el('th','','Model figure');nameHead.scope='col';hr.append(nameHead);
+        data.columns.forEach((column,i) => {
+          const th=el('th','num');th.scope='col';th.title=column;
+          const shortLabel = /^Number\s+([1-5])$/i.test(column) ? String(i+1) : column;
+          th.append(el('span','head-label',shortLabel));hr.append(th);
+        });
+        const tickHead=el('th','tick','Tick');tickHead.scope='col';hr.append(tickHead);
+        head.append(hr);table.append(head);
+        const body = el('tbody');
+        for (const [i,figure] of figures.entries()) {
+          const tr = el('tr',(figure.done ? 'row-done ' : '') + (figure.id === pickedId ? 'row-picked' : ''));
+          tr.append(el('td','row-index',String(i+1)));
+          const nameCell=el('td','name-cell');
+          const nameButton=el('button','figure-name-button',figure.name);
+          nameButton.type='button';nameButton.title='Edit '+figure.name;
+          nameButton.setAttribute('aria-label','Edit '+figure.name);
+          nameButton.addEventListener('click',() => openFigure(figure.id));
+          nameCell.append(nameButton);tr.append(nameCell);
+          for (const value of figure.values) tr.append(el('td','num number-text' + (!value ? ' blank':''),value || '—'));
+          const tickTd = el('td','tick');tickTd.append(tickNode(figure));tr.append(tickTd);
+          body.append(tr);
+        }
+        table.append(body);holder.append(table);
+      }
+      function render() {
+        const figures=getVisibleFigures();
+        const total=data.figures.length,done=data.figures.filter(f => f.done).length;
+        const range=figures.length;
+        $('randomButton').disabled=range===0;
+        $('randomButton').textContent=range ? '🎲 Pick 1–'+range.toLocaleString() : '🎲 No rows yet';
+        $('randomButton').setAttribute('aria-label',range ? 'Pick a random row from 1 to '+range : 'No rows to pick');
+        const pickedIndex=figures.findIndex(f => f.id === pickedId);
+        if (pickedIndex === -1) pickedId=null;
+        const picked=pickedIndex>=0 ? figures[pickedIndex] : null;
+        $('randomResult').textContent=picked ? '🎲 #'+(pickedIndex+1)+' — '+picked.name : 'Tap a name to edit · Autosaved';
+        $('randomResult').title=picked ? 'Random choice: row '+(pickedIndex+1)+' — '+picked.name : '';
+        $('totalCount').textContent=total.toLocaleString();
+        $('doneCount').textContent=done.toLocaleString();
+        $('leftCount').textContent=(total-done).toLocaleString();
+        $('resultsCount').textContent=figures.length.toLocaleString() + ' ' + (figures.length === 1 ? 'figure' : 'figures') + (figures.length !== total ? ' shown' : '');
+        const empty=figures.length===0;
+        $('emptyState').classList.toggle('hidden',!empty);
+        $('figureTable').classList.toggle('hidden',empty);
+        if (empty) {
+          const isFirst=total===0;
+          $('emptyTitle').textContent=isFirst?'No figures yet':'Nothing matched';
+          $('emptyDescription').textContent=isFirst?'Add your first figure to get started.':'Try another search or change the filter.';
+          $('emptyAddButton').classList.toggle('hidden',!isFirst);
+        } else {renderTable(figures);}
+      }
+      function pickRandomRow() {
+        const figures=getVisibleFigures();
+        if (!figures.length) return;
+        // The visible table is numbered 1..N, including after searching or sorting.
+        pickedId=figures[Math.floor(Math.random()*figures.length)].id;
+        render();
+        const chosen=$('figureTable').querySelector('tr.row-picked');
+        if (chosen) chosen.scrollIntoView({block:'nearest',behavior:'smooth'});
+      }
+      function handleViewChange() { pickedId=null;render(); }
+      function showDialog(dialog) { if (!dialog.open) dialog.showModal(); }
+      function closeDialog(dialog) { if (dialog.open) dialog.close(); }
+      function openFigure(id=null) {
+        editingId=id;
+        const figure=id ? data.figures.find(f => f.id===id) : null;
+        $('figureDialogTitle').textContent=figure?'Edit figure':'Add a figure';
+        $('saveFigureButton').textContent=figure?'Save changes':'Add figure';
+        $('deleteButton').classList.toggle('hidden',!figure);
+        $('figureName').value=figure ? figure.name : '';
+        const container=$('numberFields');container.replaceChildren();
+        for (let i=0;i<5;i++) {
+          const wrap=el('div','form-row');
+          const label=el('label','control-label',data.columns[i]);label.htmlFor='value'+i;
+          const input=el('input','field');input.id='value'+i;input.type='text';input.inputMode='numeric';input.maxLength=2;input.autocomplete='off';
+          input.placeholder='1–10 or blank';input.value=figure ? figure.values[i] : '';
+          wrap.append(label,input);container.append(wrap);
+        }
+        showDialog($('figureDialog'));
+        $('figureName').focus();
+      }
+      function saveFigure(event) {
+        event.preventDefault();
+        const name=$('figureName').value.trim();
+        if (!name) { $('figureName').focus();toast('Give your figure a name.');return; }
+        const values=Array.from({length:5},(_,i) => $('value'+i).value.trim());
+        const invalid=values.findIndex(v => v !== '' && !/^(?:[1-9]|10)$/.test(v));
+        if (invalid!==-1) { $('value'+invalid).focus();toast('Please enter a number from 1 to 10.');return; }
+        if (editingId) {
+          const figure=data.figures.find(f => f.id===editingId);
+          if (!figure) return;
+          figure.name=name;figure.values=values;figure.updatedAt=Date.now();
+          toast('Figure updated');
+        } else {
+          data.figures.push({id:makeId(),name,values,done:false,createdAt:Date.now(),updatedAt:Date.now()});
+          toast('Figure added');
+        }
+        pickedId=null;save();render();closeDialog($('figureDialog'));
+      }
+      function deleteFigure() {
+        const figure=data.figures.find(f => f.id===editingId);
+        if (!figure || !confirm('Delete "'+figure.name+'"? This cannot be undone unless you have a backup.')) return;
+        data.figures=data.figures.filter(f => f.id!==editingId);
+        pickedId=null;save();render();closeDialog($('figureDialog'));toast('Figure deleted');
+      }
+      function openSettings() {
+        const container=$('columnNameFields');container.replaceChildren();
+        data.columns.forEach((name,i) => {
+          const wrap=el('div','form-row');
+          const label=el('label','control-label','Column '+(i+1));label.htmlFor='column'+i;
+          const input=el('input','field');input.id='column'+i;input.type='text';input.maxLength=32;input.required=true;input.value=name;
+          wrap.append(label,input);container.append(wrap);
+        });
+        showDialog($('settingsDialog'));
+      }
+      function saveSettings(event) {
+        event.preventDefault();
+        const columns=Array.from({length:5},(_,i) => $('column'+i).value.trim());
+        if (columns.some(x => !x)) {toast('Please name all five columns.');return;}
+        data.columns=columns;save();render();toast('Column names saved');
+      }
+      function downloadFile(filename,content,mime) {
+        const blob=new Blob([content],{type:mime});
+        const url=URL.createObjectURL(blob);
+        const a=el('a');a.href=url;a.download=filename;document.body.append(a);a.click();a.remove();
+        setTimeout(() => URL.revokeObjectURL(url),30000);
+      }
+      const fileDate=() => new Date().toISOString().slice(0,10);
+      function exportJSON() {
+        downloadFile('Model-List-Backup-'+fileDate()+'.json',JSON.stringify({...data,exportedAt:new Date().toISOString()},null,2),'application/json');
+        toast('JSON backup downloaded');
+      }
+      function exportCSV() {
+        const rows=[['Row','Model Figure',...data.columns,'Ticked']];
+        const sorted=[...data.figures].sort((a,b) => a.name.localeCompare(b.name,undefined,{numeric:true,sensitivity:'base'}));
+        for (const [i,f] of sorted.entries()) rows.push([i+1,f.name,...f.values,f.done?'Yes':'No']);
+        const csv='\ufeff'+rows.map(row=>row.map(escapeCSV).join(',')).join('\r\n');
+        downloadFile('Model-List-'+fileDate()+'.csv',csv,'text/csv;charset=utf-8');
+        toast('CSV exported');
+      }
+      async function importJSON(file) {
+        if (!file) return;
+        try {
+          if (file.size > 25*1024*1024) throw Error('File is too large.');
+          const raw=await file.text();
+          const imported=validateData(JSON.parse(raw));
+          if (!confirm('Restore '+imported.figures.length+' figures from this backup?\n\nThis REPLACES your current '+data.figures.length+' figures and column names. Export a backup first if you want to keep them.')) return;
+          data=imported;pickedId=null;save();render();closeDialog($('settingsDialog'));toast('Backup restored');
+        } catch (error) { alert('Could not restore this backup: '+error.message); }
+        finally { $('importFile').value=''; }
+      }
+      load();render();
+      $('addButton').addEventListener('click',() => openFigure());
+      $('emptyAddButton').addEventListener('click',() => openFigure());
+      $('settingsButton').addEventListener('click',openSettings);
+      $('figureForm').addEventListener('submit',saveFigure);
+      $('deleteButton').addEventListener('click',deleteFigure);
+      $('columnsForm').addEventListener('submit',saveSettings);
+      $('searchInput').addEventListener('input',handleViewChange);
+      $('filterSelect').addEventListener('change',handleViewChange);
+      $('sortSelect').addEventListener('change',handleViewChange);
+      $('randomButton').addEventListener('click',pickRandomRow);
+      $('exportJson').addEventListener('click',exportJSON);
+      $('exportCsv').addEventListener('click',exportCSV);
+      $('importJson').addEventListener('click',() => $('importFile').click());
+      $('importFile').addEventListener('change',event => importJSON(event.target.files[0]));
+      document.querySelectorAll('[data-close]').forEach(btn => btn.addEventListener('click',() => closeDialog($(btn.dataset.close))));
+    })();
+  </script>
+  <script>
+    if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+      window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js').catch(error => console.warn('Offline cache unavailable:',error)));
+    }
+  </script>
+</body>
+</html>
