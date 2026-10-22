@@ -2,7 +2,7 @@
   "id": "./",
   "name": "Model List",
   "short_name": "Model List",
-  "description": "A tidy list of model figures with five number fields and tick boxes",
+  "description": "Model figure database with full-entry checks, totals, search and a random picker",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#0a1626">
-  <meta name="description" content="A simple, private model figure list with five number fields and a tick box.">
+  <meta name="description" content="A compact model figure list with an automatic total, five editable number fields and a tick box.">
   <title>Model List</title>
   <link rel="manifest" href="./manifest.webmanifest">
   <style>
@@ -62,7 +62,7 @@
     th:first-child,td:first-child {padding-left:14px}
     th:last-child,td:last-child {padding-right:8px}
     th.row-index,td.row-index {width:50px;text-align:center;padding:8px 3px!important;font-size:12px;font-variant-numeric:tabular-nums;color:var(--muted);font-weight:750}
-    th.num,td.num {width:65px;text-align:center;padding-left:2px;padding-right:2px}
+    th.total,td.total {width:86px;text-align:center;padding-left:6px;padding-right:6px}
     th.tick,td.tick {width:47px;text-align:center;padding-left:2px;padding-right:5px}
     tbody tr:nth-child(even) {background:#0c1d30}
     tbody tr:hover {background:#18354b}
@@ -72,7 +72,8 @@
     .figure-name-button {display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;overflow-wrap:anywhere;width:100%;padding:0;border:0;text-align:left;background:none;color:var(--text);font-weight:700;line-height:1.25;cursor:pointer}
     .figure-name-button:hover {color:var(--accent);text-decoration:underline}
     .figure-name-button:focus-visible {outline:2px solid var(--accent)}
-    .number-text {font-variant-numeric:tabular-nums;color:#d7e8f2;font-weight:650}
+    .number-text {font-variant-numeric:tabular-nums;color:#d7e8f2;font-weight:750}
+    .total .number-text {color:var(--accent)}
     .blank {color:#648096}
     .row-done .name-cell {color:#a7c0ce}
     .check {appearance:none;vertical-align:middle;width:24px;height:24px;flex:none;border:2px solid #7b98a9;background:#071c2c;border-radius:7px;display:inline-grid;place-items:center;cursor:pointer;margin:0}
@@ -100,6 +101,17 @@
     .divider {height:1px;background:var(--line);margin:16px 0}
     .settings-actions {display:flex;flex-wrap:wrap;gap:8px}
     .warning {background:#392b20;border:1px solid #9e7854;border-radius:10px;padding:10px 13px;color:#f5d4a7;margin-bottom:14px;font-size:13px}
+    .data-check {display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:0 0 15px}
+    .data-check p {margin:0;flex:1;min-width:150px}
+    .data-check .btn {background:#62402d;border-color:#b58557;color:#fff3dc}
+    .field.field-error {border:2px solid #ffb17d;background:#402a27}
+    .form-alert {margin-top:12px;margin-bottom:0}
+    .entry-progress {font-size:12px;margin:1px 0 10px;color:var(--muted);font-weight:700}
+    .entry-progress.all-set {color:var(--green)}
+    .total .number-text.partial {color:#f7bf80}
+    .partial-mark {color:#f7bf80;font-size:11px;font-weight:900;padding-left:1px}
+    .needs-check .figure-name-button:after {content:'  ⚠';color:#ffc48a;font-size:11px}
+
     .hidden {display:none!important}
     .toast {position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translate(-50%,20px);background:#d0fff5;color:#062720;padding:11px 17px;border-radius:12px;font-weight:750;box-shadow:0 8px 30px #0008;opacity:0;pointer-events:none;transition:transform .2s,opacity .2s;max-width:calc(100% - 30px);text-align:center;z-index:10}
     .toast.visible {opacity:1;transform:translate(-50%,0)}
@@ -127,7 +139,7 @@
       th:first-child,td:first-child {padding-left:9px}
       th:last-child,td:last-child {padding-right:4px}
       th.row-index,td.row-index {width:36px;font-size:11px;padding:7px 2px!important}
-      th.num,td.num {width:32px;font-size:12px}
+      th.total,td.total {width:61px;font-size:13px;padding-left:2px;padding-right:2px}
       th.tick,td.tick {width:36px}
       .check {width:22px;height:22px;border-radius:6px}
       .figure-name-button {font-size:12.5px}
@@ -157,6 +169,11 @@
       <div class="panel stat"><div class="number" id="leftCount">0</div><div class="label">Not ticked</div></div>
     </section>
 
+    <div id="incompleteNotice" class="warning data-check hidden" role="status">
+      <p id="incompleteMessage"></p>
+      <button type="button" id="reviewIncompleteButton" class="btn tiny">Fix next figure</button>
+    </div>
+
     <section class="panel toolbar" aria-label="Search and sort">
       <div class="toolbar-primary">
         <div class="search">
@@ -184,14 +201,16 @@
         <button class="btn primary" type="button" id="emptyAddButton">＋ Add figure</button>
       </div>
     </section>
-    <p class="footnote">Stored on this device, in this browser. Export a backup regularly — especially before clearing browser data or moving devices.</p>
+    <p class="footnote">Model List v1.4 · Stored on this device, in this browser. Export a backup regularly — especially before clearing browser data or moving devices.</p>
   </div>
 
   <dialog id="figureDialog" aria-labelledby="figureDialogTitle">
     <form id="figureForm" class="modal-body" novalidate>
-      <div class="modal-head"><div><h2 id="figureDialogTitle">Add a figure</h2><p>Enter a name and up to five numbers from 1 to 10.</p></div><button class="close" type="button" data-close="figureDialog" aria-label="Close">×</button></div>
+      <div class="modal-head"><div><h2 id="figureDialogTitle">Add a figure</h2><p>Anti-Andy mode: all five numbers (1–10) must be filled before saving.</p></div><button class="close" type="button" data-close="figureDialog" aria-label="Close">×</button></div>
       <div class="form-row"><label class="control-label" for="figureName">Model figure name *</label><input class="field" id="figureName" maxlength="200" required placeholder="e.g. Model Figure A" autocomplete="off"></div>
+      <p class="entry-progress" id="figureProgress">0 of 5 numbers filled · All five required</p>
       <div class="number-grid" id="numberFields"></div>
+      <div class="warning form-alert hidden" id="figureValidation" role="alert"></div>
       <div class="modal-footer"><button class="btn danger hidden" id="deleteButton" type="button">Delete</button><div class="right"><button class="btn" type="button" data-close="figureDialog">Cancel</button><button class="btn primary" type="submit" id="saveFigureButton">Save figure</button></div></div>
     </form>
   </dialog>
@@ -227,6 +246,7 @@
       const defaultColumns = ['Number 1','Number 2','Number 3','Number 4','Number 5'];
       let data = {version:1,columns:[...defaultColumns],figures:[]};
       let editingId = null;
+      let figureSnapshot = '';
       let pickedId = null;
       let toastTimer;
       const $ = id => document.getElementById(id);
@@ -293,6 +313,43 @@
         figure.updatedAt = Date.now();
         save();render();
       }
+      const validFigureNumber = value => /^(?:[1-9]|10)$/.test(String(value ?? '').trim());
+      const needsNumberCheck = figure => figure.values.some(value => !validFigureNumber(value));
+      function currentFigureSnapshot() {
+        return JSON.stringify([$('figureName').value,...Array.from({length:5},(_,i) => $('value'+i)?.value ?? '')]);
+      }
+      function updateEntryProgress() {
+        const values = Array.from({length:5},(_,i) => $('value'+i).value.trim());
+        const count = values.filter(validFigureNumber).length;
+        const progress = $('figureProgress');
+        progress.textContent = count === 5 ? '✓ All five numbers complete — ready to save' : count+' of 5 numbers complete · All five required (1–10)';
+        progress.classList.toggle('all-set',count === 5);
+        // Clear invalid state as soon as each field is corrected.
+        for (let i=0;i<5;i++) {
+          if (validFigureNumber(values[i])) {
+            $('value'+i).classList.remove('field-error');
+            $('value'+i).removeAttribute('aria-invalid');
+          }
+        }
+        if (count===5) $('figureValidation').classList.add('hidden');
+      }
+      function showNumberAlert(values) {
+        const invalid=values.map((value,i) => validFigureNumber(value) ? -1 : i).filter(i => i!==-1);
+        if (!invalid.length) return false;
+        invalid.forEach(i => { $('value'+i).classList.add('field-error');$('value'+i).setAttribute('aria-invalid','true'); });
+        $('figureValidation').textContent='🚨 ANTI-ANDY ALERT! '+invalid.length+' number '+(invalid.length===1?'field needs':'fields need')+' completing. Fill all five with numbers from 1 to 10 before saving.';
+        $('figureValidation').classList.remove('hidden');
+        $('value'+invalid[0]).focus();
+        return true;
+      }
+      function requestFigureClose() {
+        if (currentFigureSnapshot() !== figureSnapshot && !confirm('Discard these unsaved changes? An incomplete figure cannot be saved.')) return;
+        closeDialog($('figureDialog'));
+      }
+      function figureTotal(figure) {
+        // Blank fields count as zero. The existing five values are never changed.
+        return figure.values.reduce((sum,value) => sum + (Number(value) || 0),0);
+      }
       function tickNode(figure) {
         const input = el('input','check');
         input.type = 'checkbox';input.checked = figure.done;
@@ -306,16 +363,13 @@
         const head = el('thead'),hr = el('tr');
         const rowHead=el('th','row-index','#');rowHead.scope='col';rowHead.title='Row number in the current view';hr.append(rowHead);
         const nameHead = el('th','','Model figure');nameHead.scope='col';hr.append(nameHead);
-        data.columns.forEach((column,i) => {
-          const th=el('th','num');th.scope='col';th.title=column;
-          const shortLabel = /^Number\s+([1-5])$/i.test(column) ? String(i+1) : column;
-          th.append(el('span','head-label',shortLabel));hr.append(th);
-        });
+        const totalHead=el('th','total','Total');totalHead.scope='col';
+        totalHead.title='Sum of the five number fields';hr.append(totalHead);
         const tickHead=el('th','tick','Tick');tickHead.scope='col';hr.append(tickHead);
         head.append(hr);table.append(head);
         const body = el('tbody');
         for (const [i,figure] of figures.entries()) {
-          const tr = el('tr',(figure.done ? 'row-done ' : '') + (figure.id === pickedId ? 'row-picked' : ''));
+          const tr = el('tr',(figure.done ? 'row-done ' : '') + (figure.id === pickedId ? 'row-picked ' : '') + (needsNumberCheck(figure) ? 'needs-check' : ''));
           tr.append(el('td','row-index',String(i+1)));
           const nameCell=el('td','name-cell');
           const nameButton=el('button','figure-name-button',figure.name);
@@ -323,7 +377,12 @@
           nameButton.setAttribute('aria-label','Edit '+figure.name);
           nameButton.addEventListener('click',() => openFigure(figure.id));
           nameCell.append(nameButton);tr.append(nameCell);
-          for (const value of figure.values) tr.append(el('td','num number-text' + (!value ? ' blank':''),value || '—'));
+          const totalCell=el('td','total');
+          const partial=needsNumberCheck(figure);
+          totalCell.title=partial ? 'Partial total: one or more of the five fields still needs checking' : 'Total from five numbers';
+          totalCell.append(el('span','number-text'+(partial?' partial':''),String(figureTotal(figure))));
+          if (partial) totalCell.append(el('span','partial-mark','*'));
+          tr.append(totalCell);
           const tickTd = el('td','tick');tickTd.append(tickNode(figure));tr.append(tickTd);
           body.append(tr);
         }
@@ -332,6 +391,9 @@
       function render() {
         const figures=getVisibleFigures();
         const total=data.figures.length,done=data.figures.filter(f => f.done).length;
+        const incompleteCount=data.figures.filter(needsNumberCheck).length;
+        $('incompleteNotice').classList.toggle('hidden',incompleteCount===0);
+        $('incompleteMessage').textContent=incompleteCount ? '🚨 Anti-Andy check: '+incompleteCount+' existing '+(incompleteCount===1?'figure needs':'figures need')+' all five numbers checked. * means a partial total.' : '';
         const range=figures.length;
         $('randomButton').disabled=range===0;
         $('randomButton').textContent=range ? '🎲 Pick 1–'+range.toLocaleString() : '🎲 No rows yet';
@@ -379,9 +441,15 @@
           const wrap=el('div','form-row');
           const label=el('label','control-label',data.columns[i]);label.htmlFor='value'+i;
           const input=el('input','field');input.id='value'+i;input.type='text';input.inputMode='numeric';input.maxLength=2;input.autocomplete='off';
-          input.placeholder='1–10 or blank';input.value=figure ? figure.values[i] : '';
+          input.placeholder='Required: 1–10';input.value=figure ? figure.values[i] : '';
+          input.setAttribute('aria-required','true');
+          input.addEventListener('input',updateEntryProgress);
           wrap.append(label,input);container.append(wrap);
         }
+        $('figureValidation').classList.add('hidden');
+        $('numberFields').querySelectorAll('.field-error').forEach(input => input.classList.remove('field-error'));
+        figureSnapshot=currentFigureSnapshot();
+        updateEntryProgress();
         showDialog($('figureDialog'));
         $('figureName').focus();
       }
@@ -390,8 +458,7 @@
         const name=$('figureName').value.trim();
         if (!name) { $('figureName').focus();toast('Give your figure a name.');return; }
         const values=Array.from({length:5},(_,i) => $('value'+i).value.trim());
-        const invalid=values.findIndex(v => v !== '' && !/^(?:[1-9]|10)$/.test(v));
-        if (invalid!==-1) { $('value'+invalid).focus();toast('Please enter a number from 1 to 10.');return; }
+        if (showNumberAlert(values)) return;
         if (editingId) {
           const figure=data.figures.find(f => f.id===editingId);
           if (!figure) return;
@@ -402,6 +469,10 @@
           toast('Figure added');
         }
         pickedId=null;save();render();closeDialog($('figureDialog'));
+      }
+      function reviewNextIncomplete() {
+        const item=data.figures.find(needsNumberCheck);
+        if (item) openFigure(item.id);
       }
       function deleteFigure() {
         const figure=data.figures.find(f => f.id===editingId);
@@ -457,6 +528,7 @@
       }
       load();render();
       $('addButton').addEventListener('click',() => openFigure());
+      $('reviewIncompleteButton').addEventListener('click',reviewNextIncomplete);
       $('emptyAddButton').addEventListener('click',() => openFigure());
       $('settingsButton').addEventListener('click',openSettings);
       $('figureForm').addEventListener('submit',saveFigure);
@@ -470,7 +542,14 @@
       $('exportCsv').addEventListener('click',exportCSV);
       $('importJson').addEventListener('click',() => $('importFile').click());
       $('importFile').addEventListener('change',event => importJSON(event.target.files[0]));
-      document.querySelectorAll('[data-close]').forEach(btn => btn.addEventListener('click',() => closeDialog($(btn.dataset.close))));
+      document.querySelectorAll('[data-close]').forEach(btn => btn.addEventListener('click',() => {
+        if (btn.dataset.close === 'figureDialog') requestFigureClose();
+        else closeDialog($(btn.dataset.close));
+      }));
+      $('figureDialog').addEventListener('cancel',event => {
+        event.preventDefault();
+        requestFigureClose();
+      });
     })();
   </script>
   <script>
