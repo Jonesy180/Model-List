@@ -46,9 +46,14 @@
     .search svg {position:absolute;left:13px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--muted)}
     .field,select {width:100%;min-height:43px;border:1px solid #3a576b;border-radius:10px;color:var(--text);background:#081b2c;padding:9px 12px;outline:none}
     .search .field {padding-left:41px}
-    .toolbar-right {display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+    .toolbar-right {display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:10px;width:100%}
     .toolbar-right label {display:flex;align-items:center;gap:7px;color:var(--muted);font-size:13px}
     .toolbar-right select {width:auto;min-width:140px}
+    .last-added {display:flex;align-items:center;gap:8px;min-width:0}
+    .last-added-label {flex:none;color:var(--muted);font-size:13px}
+    .last-added-name {min-width:0;max-width:100%;border:1px solid #34546a;border-radius:8px;padding:7px 9px;text-align:left;color:var(--accent);background:#0a1c2e;font-size:12.5px;font-weight:700;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}
+    .last-added-name:hover:not(:disabled) {background:#173b4f;border-color:var(--accent)}
+    .last-added-name:disabled {cursor:default;opacity:.7;color:var(--muted)}
     .results-heading {display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 3px 11px;color:var(--muted);font-size:13px}
     /* A single database-style table for phones and larger screens. Its heading stays visible while scrolling rows. */
     .table-holder {overflow:auto;max-height:min(67dvh,720px);border-radius:16px;overscroll-behavior-y:contain;scrollbar-color:#45627a #0a1b2d}
@@ -131,8 +136,13 @@
       .search .field {font-size:13px;padding-left:34px;padding-right:5px}
       .search svg {left:10px;width:16px}
       .random-picker .btn {font-size:12px;padding:7px 4px}
-      .toolbar-right {width:100%;justify-content:space-between}
-      .toolbar-right select {min-width:120px}
+      .toolbar-right {width:100%;gap:9px;grid-template-columns:minmax(0,1fr) minmax(125px,0.75fr)}
+      .toolbar-right label {flex-direction:column;align-items:stretch;gap:3px}
+      .toolbar-right select {min-width:0;width:100%}
+      .last-added {flex-direction:column;align-items:stretch;gap:3px}
+      .last-added-label {font-size:12px}
+      .last-added-name {display:flex;align-items:center;white-space:normal;overflow:hidden;font-size:12px;padding:6px 8px;height:46px;min-height:46px}
+      .last-added-name span {display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow-wrap:anywhere;overflow:hidden;line-height:1.2}
       .table-holder {max-height:min(65dvh,660px)}
       th,td {font-size:12px;padding-top:8px;padding-bottom:8px}
       td {height:45px}
@@ -186,8 +196,8 @@
         </div>
       </div>
       <div class="toolbar-right">
-        <label for="filterSelect">Show <select id="filterSelect"><option value="all">All figures</option><option value="todo">Not ticked</option><option value="done">Ticked off</option></select></label>
-        <label for="sortSelect">Sort <select id="sortSelect"><option value="az">Name A–Z</option><option value="za">Name Z–A</option><option value="new">Newest first</option><option value="old">Oldest first</option></select></label>
+        <div class="last-added"><span class="last-added-label">Last added</span><button class="last-added-name" id="lastAddedButton" type="button" disabled title="No figures added yet"><span id="lastAddedText">None yet</span></button></div>
+        <label for="sortSelect">Sort <select id="sortSelect"><option value="az">Name A–Z</option><option value="za">Name Z–A</option><option value="high">Total: High–Low</option><option value="low">Total: Low–High</option><option value="new">Newest first</option><option value="old">Oldest first</option></select></label>
       </div>
     </section>
 
@@ -201,7 +211,7 @@
         <button class="btn primary" type="button" id="emptyAddButton">＋ Add figure</button>
       </div>
     </section>
-    <p class="footnote">Model List v1.4 · Stored on this device, in this browser. Export a backup regularly — especially before clearing browser data or moving devices.</p>
+    <p class="footnote">Model List v1.5 · Stored on this device, in this browser. Export a backup regularly — especially before clearing browser data or moving devices.</p>
   </div>
 
   <dialog id="figureDialog" aria-labelledby="figureDialogTitle">
@@ -295,15 +305,17 @@
       }
       function getVisibleFigures() {
         const search = $('searchInput').value.trim().toLocaleLowerCase();
-        const filter = $('filterSelect').value;
         const sort = $('sortSelect').value;
-        const result = data.figures.filter(f => {
-          if (filter === 'done' && !f.done) return false;
-          if (filter === 'todo' && f.done) return false;
-          return !search || f.name.toLocaleLowerCase().includes(search) || f.values.some(v => v.toLocaleLowerCase().includes(search));
-        });
+        const result = data.figures.filter(f => !search || f.name.toLocaleLowerCase().includes(search) || f.values.some(v => v.toLocaleLowerCase().includes(search)));
         const compareNames = (a,b) => a.name.localeCompare(b.name,undefined,{numeric:true,sensitivity:'base'}) || a.createdAt-b.createdAt;
-        result.sort((a,b) => sort === 'za' ? -compareNames(a,b) : sort === 'new' ? b.createdAt-a.createdAt : sort === 'old' ? a.createdAt-b.createdAt : compareNames(a,b));
+        result.sort((a,b) => {
+          if (sort === 'za') return -compareNames(a,b);
+          if (sort === 'high') return figureTotal(b) - figureTotal(a) || compareNames(a,b);
+          if (sort === 'low') return figureTotal(a) - figureTotal(b) || compareNames(a,b);
+          if (sort === 'new') return b.createdAt - a.createdAt || compareNames(a,b);
+          if (sort === 'old') return a.createdAt - b.createdAt || compareNames(a,b);
+          return compareNames(a,b);
+        });
         return result;
       }
       function setDone(id,checked) {
@@ -403,6 +415,15 @@
         const picked=pickedIndex>=0 ? figures[pickedIndex] : null;
         $('randomResult').textContent=picked ? '🎲 #'+(pickedIndex+1)+' — '+picked.name : 'Tap a name to edit · Autosaved';
         $('randomResult').title=picked ? 'Random choice: row '+(pickedIndex+1)+' — '+picked.name : '';
+        // Created-at order is independent of the active search and sort controls.
+        // Later array entries break timestamp ties, retaining the latest saved addition.
+        const latest=data.figures.reduce((last,figure) => !last || figure.createdAt >= last.createdAt ? figure : last,null);
+        const lastButton=$('lastAddedButton');
+        $('lastAddedText').textContent=latest ? latest.name : 'None yet';
+        lastButton.title=latest ? 'Edit last added: '+latest.name : 'No figures added yet';
+        lastButton.setAttribute('aria-label',latest ? 'Edit last added figure: '+latest.name : 'No figures added yet');
+        lastButton.disabled=!latest;
+        lastButton.dataset.figureId=latest ? latest.id : '';
         $('totalCount').textContent=total.toLocaleString();
         $('doneCount').textContent=done.toLocaleString();
         $('leftCount').textContent=(total-done).toLocaleString();
@@ -413,7 +434,7 @@
         if (empty) {
           const isFirst=total===0;
           $('emptyTitle').textContent=isFirst?'No figures yet':'Nothing matched';
-          $('emptyDescription').textContent=isFirst?'Add your first figure to get started.':'Try another search or change the filter.';
+          $('emptyDescription').textContent=isFirst?'Add your first figure to get started.':'Try another search.';
           $('emptyAddButton').classList.toggle('hidden',!isFirst);
         } else {renderTable(figures);}
       }
@@ -535,7 +556,10 @@
       $('deleteButton').addEventListener('click',deleteFigure);
       $('columnsForm').addEventListener('submit',saveSettings);
       $('searchInput').addEventListener('input',handleViewChange);
-      $('filterSelect').addEventListener('change',handleViewChange);
+      $('lastAddedButton').addEventListener('click',() => {
+        const id=$('lastAddedButton').dataset.figureId;
+        if (id && data.figures.some(figure => figure.id===id)) openFigure(id);
+      });
       $('sortSelect').addEventListener('change',handleViewChange);
       $('randomButton').addEventListener('click',pickRandomRow);
       $('exportJson').addEventListener('click',exportJSON);

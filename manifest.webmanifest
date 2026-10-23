@@ -2,7 +2,7 @@
   "id": "./",
   "name": "Model List",
   "short_name": "Model List",
-  "description": "Model figure database with full-entry checks, totals, search and a random picker",
+  "description": "Model figure database with full-entry checks, totals, total sorting, last added, search and a random picker",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
