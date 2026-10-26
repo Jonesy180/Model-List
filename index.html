@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#0a1626">
-  <meta name="description" content="A compact model figure list with an automatic total, five editable number fields and a tick box.">
+  <meta name="description" content="Your model figures organised into ticked and unticked lists, with automatic totals and duplicate prevention.">
   <title>Model List</title>
   <link rel="manifest" href="./manifest.webmanifest">
   <style>
@@ -31,6 +31,16 @@
     .btn.danger:hover {background:#4b2a36}
     .btn.tiny {font-size:12px;padding:7px 9px;min-height:33px;border-radius:8px}
     .panel {border:1px solid var(--line);background:linear-gradient(180deg,#12263b,#102034);border-radius:17px;box-shadow:var(--shadow)}
+    .list-nav {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:-4px 0 17px}
+    .list-tile {width:100%;display:flex;align-items:center;gap:11px;text-align:left;min-width:0;border:1px solid #35546a;background:linear-gradient(180deg,#142d42,#102338);color:var(--text);border-radius:15px;padding:13px 15px;min-height:75px;cursor:pointer}
+    .list-tile:hover {border-color:#65c5d6;background:#1a3a4c}
+    .list-tile.active {border:2px solid var(--accent);background:linear-gradient(180deg,#184153,#123444)}
+    .list-tile:focus-visible {outline:3px solid var(--accent);outline-offset:3px}
+    .list-tile .tile-icon {font-size:23px;line-height:1;flex:none}
+    .list-tile .tile-copy {display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
+    .list-tile .tile-title {font-size:14px;font-weight:850;line-height:1.2}
+    .list-tile .tile-note {font-size:11px;color:var(--muted);line-height:1.3}
+    .list-tile .tile-count {font-size:22px;font-weight:850;font-variant-numeric:tabular-nums;color:var(--accent);flex:none}
     .summary {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:17px}
     .stat {padding:16px 19px}
     .stat .number {font-size:28px;line-height:1.15;font-weight:800;font-variant-numeric:tabular-nums}
@@ -116,6 +126,10 @@
     .total .number-text.partial {color:#f7bf80}
     .partial-mark {color:#f7bf80;font-size:11px;font-weight:900;padding-left:1px}
     .needs-check .figure-name-button:after {content:'  ⚠';color:#ffc48a;font-size:11px}
+    .duplicate-row .figure-name-button:before {content:'⚑ ';color:#ffb18d}
+    .field.duplicate-error {border:2px solid var(--red);background:#3d252d}
+    .duplicate-check {border-color:#b97758;background:#3e2b25}
+
 
     .hidden {display:none!important}
     .toast {position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translate(-50%,20px);background:#d0fff5;color:#062720;padding:11px 17px;border-radius:12px;font-weight:750;box-shadow:0 8px 30px #0008;opacity:0;pointer-events:none;transition:transform .2s,opacity .2s;max-width:calc(100% - 30px);text-align:center;z-index:10}
@@ -128,6 +142,12 @@
       .logo {width:43px;height:43px;border-radius:12px}
       .actions {width:100%}
       .actions .btn {flex:1}
+      .list-nav {gap:8px;margin:0 0 14px}
+      .list-tile {min-height:73px;gap:7px;padding:10px 9px;border-radius:12px}
+      .list-tile .tile-icon {font-size:19px}
+      .list-tile .tile-title {font-size:12px}
+      .list-tile .tile-note {font-size:10px}
+      .list-tile .tile-count {font-size:19px}
       .summary {gap:8px}
       .stat {padding:13px 10px}
       .stat .number {font-size:23px}
@@ -173,6 +193,15 @@
 
     <div id="storageWarning" class="warning hidden" role="alert">Your browser is blocking local storage. Changes might not survive closing this page. Export a JSON backup before leaving.</div>
 
+    <nav class="list-nav" aria-label="Choose figure list">
+      <button class="list-tile active" type="button" id="mainListButton" aria-current="page">
+        <span class="tile-icon" aria-hidden="true">✓</span><span class="tile-copy"><span class="tile-title">Main list</span><span class="tile-note">Ticked figures</span></span><span class="tile-count" id="mainListCount">0</span>
+      </button>
+      <button class="list-tile" type="button" id="untickedListButton">
+        <span class="tile-icon" aria-hidden="true">○</span><span class="tile-copy"><span class="tile-title">Unticked list</span><span class="tile-note">Still to tick</span></span><span class="tile-count" id="untickedListCount">0</span>
+      </button>
+    </nav>
+
     <section class="summary" aria-label="List summary">
       <div class="panel stat"><div class="number" id="totalCount">0</div><div class="label">Total figures</div></div>
       <div class="panel stat"><div class="number good" id="doneCount">0</div><div class="label">Ticked off</div></div>
@@ -182,6 +211,11 @@
     <div id="incompleteNotice" class="warning data-check hidden" role="status">
       <p id="incompleteMessage"></p>
       <button type="button" id="reviewIncompleteButton" class="btn tiny">Fix next figure</button>
+    </div>
+
+    <div id="duplicateNotice" class="warning data-check duplicate-check hidden" role="status">
+      <p id="duplicateMessage"></p>
+      <button type="button" id="reviewDuplicateButton" class="btn tiny">Review duplicate</button>
     </div>
 
     <section class="panel toolbar" aria-label="Search and sort">
@@ -211,13 +245,14 @@
         <button class="btn primary" type="button" id="emptyAddButton">＋ Add figure</button>
       </div>
     </section>
-    <p class="footnote">Model List v1.5 · Stored on this device, in this browser. Export a backup regularly — especially before clearing browser data or moving devices.</p>
+    <p class="footnote">Model List v1.6 · Ticked figures belong in Main; unticked figures are kept in the second list. Your data stays on this device. Export backups regularly.</p>
   </div>
 
   <dialog id="figureDialog" aria-labelledby="figureDialogTitle">
     <form id="figureForm" class="modal-body" novalidate>
       <div class="modal-head"><div><h2 id="figureDialogTitle">Add a figure</h2><p>Anti-Andy mode: all five numbers (1–10) must be filled before saving.</p></div><button class="close" type="button" data-close="figureDialog" aria-label="Close">×</button></div>
       <div class="form-row"><label class="control-label" for="figureName">Model figure name *</label><input class="field" id="figureName" maxlength="200" required placeholder="e.g. Model Figure A" autocomplete="off"></div>
+      <div class="warning form-alert hidden" id="duplicateValidation" role="alert"></div>
       <p class="entry-progress" id="figureProgress">0 of 5 numbers filled · All five required</p>
       <div class="number-grid" id="numberFields"></div>
       <div class="warning form-alert hidden" id="figureValidation" role="alert"></div>
@@ -236,7 +271,7 @@
       </form>
       <div class="divider"></div>
       <label class="control-label">Backup &amp; export</label>
-      <p class="hint">JSON is a complete backup you can restore. CSV is a spreadsheet-friendly copy. Importing JSON replaces your current list after confirmation.</p>
+      <p class="hint">JSON saves both lists together. CSV includes every figure and its tick status. Restoring JSON replaces both lists after confirmation; existing duplicate names are preserved and flagged for review.</p>
       <div class="settings-actions">
         <button class="btn" id="exportJson" type="button">↓ Backup JSON</button>
         <button class="btn" id="exportCsv" type="button">↓ Export CSV</button>
@@ -258,6 +293,7 @@
       let editingId = null;
       let figureSnapshot = '';
       let pickedId = null;
+      let activeList = 'main'; // Existing checked state is authoritative: no migration or loss of data.
       let toastTimer;
       const $ = id => document.getElementById(id);
       const escapeCSV = value => '"' + String(value ?? '').replace(/"/g,'""') + '"';
@@ -306,7 +342,7 @@
       function getVisibleFigures() {
         const search = $('searchInput').value.trim().toLocaleLowerCase();
         const sort = $('sortSelect').value;
-        const result = data.figures.filter(f => !search || f.name.toLocaleLowerCase().includes(search) || f.values.some(v => v.toLocaleLowerCase().includes(search)));
+        const result = data.figures.filter(f => f.done === (activeList === 'main') && (!search || f.name.toLocaleLowerCase().includes(search) || f.values.some(v => v.toLocaleLowerCase().includes(search))));
         const compareNames = (a,b) => a.name.localeCompare(b.name,undefined,{numeric:true,sensitivity:'base'}) || a.createdAt-b.createdAt;
         result.sort((a,b) => {
           if (sort === 'za') return -compareNames(a,b);
@@ -324,8 +360,43 @@
         figure.done = checked;
         figure.updatedAt = Date.now();
         save();render();
+        toast(checked ? 'Moved to Main list ✓' : 'Moved to Unticked list');
       }
+      const normaliseName = name => String(name ?? '').normalize('NFKC').trim().replace(/\s+/g,' ').toLocaleLowerCase();
       const validFigureNumber = value => /^(?:[1-9]|10)$/.test(String(value ?? '').trim());
+      function duplicateFor(name,ignoreId=null) {
+        const key=normaliseName(name);
+        return key ? data.figures.find(f => f.id !== ignoreId && normaliseName(f.name) === key) : null;
+      }
+      function duplicateIds() {
+        const seen=new Map(),duplicates=new Set();
+        for (const figure of data.figures) {
+          const key=normaliseName(figure.name);
+          if (seen.has(key)) {duplicates.add(figure.id);duplicates.add(seen.get(key));}
+          else seen.set(key,figure.id);
+        }
+        return duplicates;
+      }
+      function showDuplicateAlert(duplicate) {
+        const alert=$('duplicateValidation');
+        if (duplicate) {
+          alert.textContent='⚠ DUPLICATE FIGURE! "'+duplicate.name+'" is already in the '+(duplicate.done?'Main':'Unticked')+' list. Use its existing entry instead of creating another.';
+          alert.classList.remove('hidden');
+          $('figureName').classList.add('duplicate-error');
+          $('figureName').setAttribute('aria-invalid','true');
+        } else {
+          alert.classList.add('hidden');
+          $('figureName').classList.remove('duplicate-error');
+          $('figureName').removeAttribute('aria-invalid');
+        }
+      }
+      function checkNameWhileTyping() {
+        const name=$('figureName').value;
+        const original=editingId ? data.figures.find(f => f.id===editingId) : null;
+        // Existing duplicates in older backups may still have their numbers edited.
+        const unchanged=original && normaliseName(original.name) === normaliseName(name);
+        showDuplicateAlert(unchanged ? null : duplicateFor(name,editingId));
+      }
       const needsNumberCheck = figure => figure.values.some(value => !validFigureNumber(value));
       function currentFigureSnapshot() {
         return JSON.stringify([$('figureName').value,...Array.from({length:5},(_,i) => $('value'+i)?.value ?? '')]);
@@ -370,6 +441,7 @@
         return input;
       }
       function renderTable(figures) {
+        const duplicateIdsSet=duplicateIds();
         const holder = $('figureTable');holder.replaceChildren();
         const table = el('table');
         const head = el('thead'),hr = el('tr');
@@ -381,7 +453,7 @@
         head.append(hr);table.append(head);
         const body = el('tbody');
         for (const [i,figure] of figures.entries()) {
-          const tr = el('tr',(figure.done ? 'row-done ' : '') + (figure.id === pickedId ? 'row-picked ' : '') + (needsNumberCheck(figure) ? 'needs-check' : ''));
+          const tr = el('tr',(figure.done ? 'row-done ' : '') + (figure.id === pickedId ? 'row-picked ' : '') + (needsNumberCheck(figure) ? 'needs-check ' : '') + (duplicateIdsSet.has(figure.id) ? 'duplicate-row' : ''));
           tr.append(el('td','row-index',String(i+1)));
           const nameCell=el('td','name-cell');
           const nameButton=el('button','figure-name-button',figure.name);
@@ -403,6 +475,16 @@
       function render() {
         const figures=getVisibleFigures();
         const total=data.figures.length,done=data.figures.filter(f => f.done).length;
+        $('mainListCount').textContent=done.toLocaleString();
+        $('untickedListCount').textContent=(total-done).toLocaleString();
+        for (const [list,id] of [['main','mainListButton'],['unticked','untickedListButton']]) {
+          const current=activeList===list,button=$(id);
+          button.classList.toggle('active',current);
+          if (current) button.setAttribute('aria-current','page'); else button.removeAttribute('aria-current');
+        }
+        const duplicateSet=duplicateIds();
+        $('duplicateNotice').classList.toggle('hidden',duplicateSet.size===0);
+        $('duplicateMessage').textContent=duplicateSet.size ? '⚑ Possible duplicates: '+duplicateSet.size+' saved figures have matching names across your lists. Existing records are preserved; please review them.' : '';
         const incompleteCount=data.figures.filter(needsNumberCheck).length;
         $('incompleteNotice').classList.toggle('hidden',incompleteCount===0);
         $('incompleteMessage').textContent=incompleteCount ? '🚨 Anti-Andy check: '+incompleteCount+' existing '+(incompleteCount===1?'figure needs':'figures need')+' all five numbers checked. * means a partial total.' : '';
@@ -427,14 +509,16 @@
         $('totalCount').textContent=total.toLocaleString();
         $('doneCount').textContent=done.toLocaleString();
         $('leftCount').textContent=(total-done).toLocaleString();
-        $('resultsCount').textContent=figures.length.toLocaleString() + ' ' + (figures.length === 1 ? 'figure' : 'figures') + (figures.length !== total ? ' shown' : '');
+        const listTotal=activeList==='main' ? done : total-done;
+        $('resultsCount').textContent=(activeList==='main' ? 'Main list: ' : 'Unticked list: ')+figures.length.toLocaleString() + ' ' + (figures.length === 1 ? 'figure' : 'figures') + (figures.length !== listTotal ? ' shown' : '');
         const empty=figures.length===0;
         $('emptyState').classList.toggle('hidden',!empty);
         $('figureTable').classList.toggle('hidden',empty);
         if (empty) {
           const isFirst=total===0;
-          $('emptyTitle').textContent=isFirst?'No figures yet':'Nothing matched';
-          $('emptyDescription').textContent=isFirst?'Add your first figure to get started.':'Try another search.';
+          const isFiltered=Boolean($('searchInput').value.trim());
+          $('emptyTitle').textContent=isFirst?'No figures yet':isFiltered?'Nothing matched':activeList==='main'?'No ticked figures yet':'No unticked figures';
+          $('emptyDescription').textContent=isFirst?'Add your first figure to get started. New figures begin in the Unticked list.':isFiltered?'Try another search.':activeList==='main'?'Tick figures in the Unticked list to send them here.':'Any figure you untick in Main will move here automatically.';
           $('emptyAddButton').classList.toggle('hidden',!isFirst);
         } else {renderTable(figures);}
       }
@@ -448,6 +532,19 @@
         if (chosen) chosen.scrollIntoView({block:'nearest',behavior:'smooth'});
       }
       function handleViewChange() { pickedId=null;render(); }
+      function switchList(list) {
+        if (activeList===list) return;
+        activeList=list;
+        pickedId=null;
+        $('searchInput').value=''; // Switch to the whole other list, not a stale search result.
+        render();
+        $('figureTable').scrollTop=0;
+      }
+      function reviewNextDuplicate() {
+        const duplicates=duplicateIds();
+        const figure=data.figures.find(f => duplicates.has(f.id));
+        if (figure) { switchList(figure.done?'main':'unticked');openFigure(figure.id); }
+      }
       function showDialog(dialog) { if (!dialog.open) dialog.showModal(); }
       function closeDialog(dialog) { if (dialog.open) dialog.close(); }
       function openFigure(id=null) {
@@ -457,6 +554,7 @@
         $('saveFigureButton').textContent=figure?'Save changes':'Add figure';
         $('deleteButton').classList.toggle('hidden',!figure);
         $('figureName').value=figure ? figure.name : '';
+        showDuplicateAlert(null);
         const container=$('numberFields');container.replaceChildren();
         for (let i=0;i<5;i++) {
           const wrap=el('div','form-row');
@@ -480,6 +578,10 @@
         if (!name) { $('figureName').focus();toast('Give your figure a name.');return; }
         const values=Array.from({length:5},(_,i) => $('value'+i).value.trim());
         if (showNumberAlert(values)) return;
+        const current=editingId ? data.figures.find(f => f.id===editingId) : null;
+        const nameUnchanged=current && normaliseName(current.name) === normaliseName(name);
+        const existing=nameUnchanged ? null : duplicateFor(name,editingId);
+        if (existing) {showDuplicateAlert(existing);$('figureName').focus();return;}
         if (editingId) {
           const figure=data.figures.find(f => f.id===editingId);
           if (!figure) return;
@@ -487,7 +589,8 @@
           toast('Figure updated');
         } else {
           data.figures.push({id:makeId(),name,values,done:false,createdAt:Date.now(),updatedAt:Date.now()});
-          toast('Figure added');
+          activeList='unticked';$('searchInput').value='';
+          toast('Figure added to Unticked list');
         }
         pickedId=null;save();render();closeDialog($('figureDialog'));
       }
@@ -548,6 +651,10 @@
         finally { $('importFile').value=''; }
       }
       load();render();
+      $('mainListButton').addEventListener('click',()=>switchList('main'));
+      $('untickedListButton').addEventListener('click',()=>switchList('unticked'));
+      $('reviewDuplicateButton').addEventListener('click',reviewNextDuplicate);
+      $('figureName').addEventListener('input',checkNameWhileTyping);
       $('addButton').addEventListener('click',() => openFigure());
       $('reviewIncompleteButton').addEventListener('click',reviewNextIncomplete);
       $('emptyAddButton').addEventListener('click',() => openFigure());
