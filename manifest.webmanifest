@@ -2,7 +2,7 @@
   "id": "./",
   "name": "Model List",
   "short_name": "Model List",
-  "description": "Model figure database with full-entry checks, totals, tick status lists, duplicate detection, totals, sorting, last added, search and a random picker",
+  "description": "Model figure database with Main, Unticked and Don’t Want name-only list, duplicate detection, autosave, search, sorting, random picker and JSON backups",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
