@@ -1,4 +1,4 @@
-const CACHE = 'model-list-static-v1-7';
+const CACHE = 'model-list-static-v1-8';
 const FILES = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(FILES)).then(() => self.skipWaiting()));
