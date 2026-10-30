@@ -2,7 +2,7 @@
   "id": "./",
   "name": "Model List",
   "short_name": "Model List",
-  "description": "Figure database with Main, Unticked and Don\u2019t Want lists, no-repeat Main random draw, adjustable draw eligibility, autosave and backups",
+  "description": "Figure database with Main, Unticked and Don’t Want lists, no-repeat Main random draw, adjustable draw eligibility, autosave and backups",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
@@ -10,13 +10,13 @@
   "theme_color": "#0a1626",
   "icons": [
     {
-      "src": "./icon-192.png",
+      "src": "./icon-192-ppi.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "./icon-512.png",
+      "src": "./icon-512-ppi.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"

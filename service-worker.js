@@ -1,5 +1,5 @@
-const CACHE = 'model-list-static-v1-9';
-const FILES = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
+const CACHE = 'model-list-static-v1-9-1';
+const FILES = ['./', './index.html', './manifest.webmanifest', './icon-192-ppi.png', './icon-512-ppi.png', './ppi-hero.webp', './ppi-sponsor.webp'];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(FILES)).then(() => self.skipWaiting()));
 });

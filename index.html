@@ -7,6 +7,8 @@
   <meta name="description" content="Model figures organised across Main, Unticked, and Don’t Want lists, with automatic totals and duplicate prevention.">
   <title>Model List</title>
   <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" type="image/png" sizes="192x192" href="./icon-192-ppi.png">
+  <link rel="apple-touch-icon" href="./icon-192-ppi.png">
   <style>
     :root { color-scheme: dark; --bg:#07121f; --panel:#102237; --panel2:#132a41; --line:#29445b; --text:#edf7fc; --muted:#9eb2c5; --accent:#53d8e9; --accent-dim:#173f4b; --green:#76e0bb; --red:#ff9b9c; --shadow:0 10px 32px #02091355; }
     * {box-sizing:border-box}
@@ -203,15 +205,39 @@
     }
     @media (max-width:375px) { .number-grid {gap:9px} th,td {font-size:11.5px} }
     @media (prefers-reduced-motion:reduce) { * {scroll-behavior:auto!important;transition:none!important} }
+
+    /* v1.9.1 artwork: decorative assets only, no changes to stored figures or draw logic. */
+    .hero-banner {display:block;width:100%;height:auto;border:1px solid #355f7e;border-radius:17px;margin:0 0 10px;overflow:hidden;background:#0b1c2a}
+    .hero-banner img {display:block;width:100%;height:auto;aspect-ratio:839/264;object-fit:cover}
+    header.hero-action-row {margin-bottom:18px;justify-content:flex-end}
+    .hero-action-row .actions {justify-content:flex-end}
+    .draw-panel {display:grid;grid-template-columns:minmax(0,1fr) minmax(116px,260px);align-items:stretch;gap:8px;padding:10px 12px 10px 14px;overflow:hidden;background:#081b2e}
+    .draw-details {min-width:0;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:9px}
+    .draw-count {font-size:clamp(13px,2vw,18px);line-height:1.25}
+    .draw-legend {line-height:1.45}
+    .draw-sponsor {flex:none;width:100%;font-size:12px;line-height:1.48;padding-top:9px}
+    .draw-sponsor em {display:block;margin-top:4px;color:#80d8e7;font-size:12px}
+    .sponsor-picture {display:block;width:100%;max-width:260px;min-height:146px;height:100%;max-height:210px;object-fit:cover;object-position:center center;justify-self:end;align-self:stretch;border-radius:11px;mask-image:linear-gradient(to right,transparent 0%,black 18%);-webkit-mask-image:linear-gradient(to right,transparent 0%,black 18%)}
+    @media (max-width:720px) {
+      .hero-banner {border-radius:12px;margin-bottom:12px}
+      header.hero-action-row {margin-bottom:14px}
+      .hero-action-row .actions {width:100%;justify-content:space-between}
+      .hero-action-row .actions .btn {flex:1}
+      .draw-panel {grid-template-columns:minmax(0,1fr) minmax(108px,40%);gap:3px;padding:11px 9px 11px 11px}
+      .draw-details {gap:6px}
+      .draw-count {font-size:13px}
+      .draw-legend {font-size:11px}
+      .draw-sponsor {font-size:10.5px;padding-top:7px}
+      .draw-sponsor em {font-size:10.5px}
+      .sponsor-picture {min-height:178px;max-height:240px}
+    }
   </style>
 </head>
 <body>
   <div class="shell">
-    <header>
-      <div class="brand">
-        <div class="logo" aria-hidden="true">ML</div>
-        <div><h1>Model List</h1><p class="subtitle">Your figures, neatly organised.</p></div>
-      </div>
+    <div class="hero-banner"><img src="./ppi-hero.webp" width="839" height="264" alt="Model List — Penguin Protection Industries mascot and three traffic-cone assistants. Some things should never be picked twice." fetchpriority="high"></div>
+    <header class="hero-action-row">
+      <h1 class="sr-only">Model List</h1>
       <div class="actions">
         <button class="btn" id="settingsButton" type="button">⚙ Settings &amp; backup</button>
         <button class="btn primary" id="addButton" type="button">＋ Add figure</button>
@@ -266,9 +292,12 @@
     </section>
 
     <section id="drawPanel" class="draw-panel hidden" aria-label="Random draw status">
-      <div class="draw-count" id="drawCount" role="status">🎲 0 available / 0 Main figures</div>
-      <div class="draw-legend">Normal name = available · <strong>Orange = excluded</strong></div>
-      <div class="draw-sponsor">🐧 <b>Penguin Protection Industries™</b> · Official Random Draw Sponsor · <em>“Some things should NEVER be picked twice.”</em></div>
+      <div class="draw-details">
+        <div class="draw-count" id="drawCount" role="status">🎲 0 available / 0 Main figures</div>
+        <div class="draw-legend">Normal name = available · <strong>Orange = excluded</strong></div>
+        <div class="draw-sponsor"><b>🐧 Penguin Protection Industries™</b><br>Official Random Draw Sponsor<em>“Some things should NEVER be picked twice.”</em></div>
+      </div>
+      <img class="sponsor-picture" src="./ppi-sponsor.webp" width="330" height="266" alt="Penguin Protection Industries mascot gives a thumbs-up in safety equipment and holds a Stay Clean Stay Lucky sign" loading="lazy">
     </section>
 
     <div class="results-heading"><span id="resultsCount">0 figures</span><span id="randomResult" role="status" aria-live="polite">Tap a name to edit · Autosaved</span></div>
@@ -281,7 +310,7 @@
         <button class="btn primary" type="button" id="emptyAddButton">＋ Add figure</button>
       </div>
     </section>
-    <p class="footnote">Model List v1.9 · Main List draws never repeat an excluded figure. Search still checks all three lists. Your figures and backups stay on this device.</p>
+    <p class="footnote">Model List v1.9.1 · Main List draws never repeat an excluded figure. Search still checks all three lists. Your figures and backups stay on this device.</p>
   </div>
 
   <dialog id="figureDialog" aria-labelledby="figureDialogTitle">
