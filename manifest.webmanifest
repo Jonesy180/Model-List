@@ -2,7 +2,7 @@
   "id": "./",
   "name": "Model List",
   "short_name": "Model List",
-  "description": "Model figure database with Main, Unticked and Don’t Want name-only list, duplicate detection, autosave, search across all three lists, sorting, random picker and JSON backups",
+  "description": "Figure database with Main, Unticked and Don\u2019t Want lists, no-repeat Main random draw, adjustable draw eligibility, autosave and backups",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
