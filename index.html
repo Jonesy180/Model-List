@@ -231,110 +231,97 @@
       .draw-sponsor em {font-size:10.5px}
       .sponsor-picture {min-height:178px;max-height:240px}
     }
+
+    /* v2.0: Home control centre; three deliberately uncluttered category screens. */
+    .list-nav {grid-template-columns:repeat(4,minmax(0,1fr));margin:0 0 17px}
+    .list-tile {min-height:60px;justify-content:center}
+    .list-tile .tile-title {font-size:14px}
+    .list-tile .tile-count {font-size:18px}
+    .home-entry {padding:16px 17px;margin-bottom:17px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+    .home-entry h2 {font-size:18px;margin:0 0 3px}
+    .home-entry .hint {margin:0;max-width:430px}
+    .home-add-controls {display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap}
+    .home-add-controls label {font-size:12px;color:var(--muted);font-weight:700;min-width:146px}
+    .home-add-controls select {display:block;margin-top:4px;min-width:155px}
+    .home-draw-result {display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:2px 3px 16px;color:#aeeef4;font-size:13px;font-weight:700}
+    #searchResultsSection {margin:4px 0 18px}
+    .list-screen-header {display:flex;align-items:center;justify-content:space-between;gap:15px;margin:14px 2px 21px}
+    .list-screen-header h2 {font-size:clamp(22px,3vw,28px);font-weight:850}
+    .list-screen-header .hint {margin:2px 0 0}
+    #listScreen .table-holder {max-height:min(76dvh,850px)}
+    .form-row select {margin-top:5px}
+    .footnote {margin-top:10px}
+    @media(max-width:720px) {
+      .list-nav {gap:6px}
+      .list-tile {padding:8px 5px;min-height:65px;align-items:center;text-align:center;justify-content:center;gap:4px}
+      .list-tile .tile-copy {flex:unset}
+      .list-tile .tile-title {font-size:11px}
+      .list-tile .tile-count {font-size:17px}
+      .home-entry {gap:11px;padding:13px 12px}
+      .home-add-controls {width:100%;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}
+      .home-add-controls label,.home-add-controls select,.home-add-controls .btn {width:100%;min-width:0}
+      .list-screen-header {margin-top:10px}
+    }
   </style>
 </head>
 <body>
   <div class="shell">
-    <div class="hero-banner"><img src="./ppi-hero.webp" width="839" height="264" alt="Model List — Penguin Protection Industries mascot and three traffic-cone assistants. Some things should never be picked twice." fetchpriority="high"></div>
-    <header class="hero-action-row">
-      <h1 class="sr-only">Model List</h1>
-      <div class="actions">
-        <button class="btn" id="settingsButton" type="button">⚙ Settings &amp; backup</button>
-        <button class="btn primary" id="addButton" type="button">＋ Add figure</button>
-      </div>
-    </header>
-
-    <div id="storageWarning" class="warning hidden" role="alert">Your browser is blocking local storage. Changes might not survive closing this page. Export a JSON backup before leaving.</div>
-
-    <nav class="list-nav" aria-label="Choose figure list">
-      <button class="list-tile active" type="button" id="mainListButton" aria-current="page">
-        <span class="tile-icon" aria-hidden="true">✓</span><span class="tile-copy"><span class="tile-title">Main list</span><span class="tile-note">Ticked figures</span></span><span class="tile-count" id="mainListCount">0</span>
-      </button>
-      <button class="list-tile" type="button" id="untickedListButton">
-        <span class="tile-icon" aria-hidden="true">○</span><span class="tile-copy"><span class="tile-title">Unticked list</span><span class="tile-note">Still to tick</span></span><span class="tile-count" id="untickedListCount">0</span>
-      </button>
-      <button class="list-tile" type="button" id="unwantedListButton">
-        <span class="tile-icon" aria-hidden="true">✕</span><span class="tile-copy"><span class="tile-title">Don't Want</span><span class="tile-note">Just names, nothing else</span></span><span class="tile-count" id="unwantedListCount">0</span>
-      </button>
+    <nav class="list-nav" aria-label="Choose screen">
+      <button class="list-tile active" type="button" id="homeButton" aria-current="page"><span class="tile-icon">⌂</span><span class="tile-copy"><span class="tile-title">Home</span><span class="tile-note">Control centre</span></span></button>
+      <button class="list-tile" type="button" id="mainListButton"><span class="tile-icon">★</span><span class="tile-copy"><span class="tile-title">Main</span></span><span class="tile-count" id="mainListCount">0</span></button>
+      <button class="list-tile" type="button" id="untickedListButton"><span class="tile-icon">○</span><span class="tile-copy"><span class="tile-title">Unticked</span></span><span class="tile-count" id="untickedListCount">0</span></button>
+      <button class="list-tile" type="button" id="unwantedListButton"><span class="tile-icon">✕</span><span class="tile-copy"><span class="tile-title">Don't Want</span></span><span class="tile-count" id="unwantedListCount">0</span></button>
     </nav>
-
-    <section class="summary" id="summarySection" aria-label="Collection summary">
-      <div class="panel stat"><div class="number" id="totalCount">0</div><div class="label">Total figures</div></div>
-      <div class="panel stat"><div class="number good" id="doneCount">0</div><div class="label">Ticked off</div></div>
-      <div class="panel stat"><div class="number" id="leftCount">0</div><div class="label">Not ticked</div></div>
-    </section>
-
-    <div id="incompleteNotice" class="warning data-check hidden" role="status">
-      <p id="incompleteMessage"></p>
-      <button type="button" id="reviewIncompleteButton" class="btn tiny">Fix next figure</button>
-    </div>
-
-    <div id="duplicateNotice" class="warning data-check duplicate-check hidden" role="status">
-      <p id="duplicateMessage"></p>
-      <button type="button" id="reviewDuplicateButton" class="btn tiny">Review duplicate</button>
-    </div>
-
-    <section class="panel toolbar" aria-label="Search and sort">
-      <div class="toolbar-primary">
-        <div class="search">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="10.8" cy="10.8" r="7.1"/><path d="m16 16 5 5"/></svg>
-          <label for="searchInput" class="sr-only">Search figures in all three lists</label>
-          <input class="field" id="searchInput" type="search" placeholder="Search all 3 lists…" autocomplete="off">
+    <div id="storageWarning" class="warning hidden" role="alert">Storage is unavailable. Export a JSON backup before leaving this page.</div>
+    <section id="homeScreen" aria-label="Home — add and organise figures">
+      <div class="hero-banner"><img src="./ppi-hero.webp" width="839" height="264" alt="Model List — Penguin Protection Industries mascot and three traffic-cone assistants. Some things should never be picked twice." fetchpriority="high"></div>
+      <header class="hero-action-row"><h1 class="sr-only">Model List</h1><div class="actions"><button class="btn" id="settingsButton" type="button">⚙ Settings &amp; backup</button></div></header>
+      <section class="panel home-entry" aria-labelledby="addHeading">
+        <div><h2 id="addHeading">Add a figure</h2><p class="hint">Choose its destination, then enter the details. Existing records stay in their current lists.</p></div>
+        <div class="home-add-controls"><label for="newDestination">Send to <select id="newDestination"><option value="main">Main list</option><option value="unticked" selected>Unticked list</option><option value="unwanted">Don't Want</option></select></label><button class="btn primary" id="addButton" type="button">＋ Add figure</button></div>
+      </section>
+      <section class="summary" id="summarySection" aria-label="Collection summary">
+        <div class="panel stat"><div class="number" id="totalCount">0</div><div class="label">All figures</div></div>
+        <div class="panel stat"><div class="number good" id="doneCount">0</div><div class="label">Main</div></div>
+        <div class="panel stat"><div class="number" id="leftCount">0</div><div class="label">Unticked / Don't Want</div></div>
+      </section>
+      <div id="incompleteNotice" class="warning data-check hidden" role="status"><p id="incompleteMessage"></p><button type="button" id="reviewIncompleteButton" class="btn tiny">Fix next figure</button></div>
+      <div id="duplicateNotice" class="warning data-check duplicate-check hidden" role="status"><p id="duplicateMessage"></p><button type="button" id="reviewDuplicateButton" class="btn tiny">Review duplicate</button></div>
+      <section class="panel toolbar" aria-label="Search, sort and random draw">
+        <div class="toolbar-primary">
+          <div class="search"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="10.8" cy="10.8" r="7.1"/><path d="m16 16 5 5"/></svg><label for="searchInput" class="sr-only">Search all three lists</label><input class="field" id="searchInput" type="search" placeholder="Search all 3 lists…" autocomplete="off"></div>
+          <div class="random-picker"><button class="btn" type="button" id="randomButton" aria-label="Draw one available Main List figure" disabled>🎲 No figures yet</button></div>
         </div>
-        <div class="random-picker">
-          <button class="btn" type="button" id="randomButton" aria-label="Pick a random row" disabled>🎲 No rows yet</button>
+        <div class="toolbar-right">
+          <div class="last-added"><span class="last-added-label">Last added</span><button class="last-added-name" id="lastAddedButton" type="button" disabled><span id="lastAddedText">None yet</span></button></div>
+          <label for="sortSelect">Sort lists by <select id="sortSelect"><option value="az">Name A–Z</option><option value="za">Name Z–A</option><option value="high" id="sortHigh">Total: High–Low</option><option value="low" id="sortLow">Total: Low–High</option><option value="new">Newest first</option><option value="old">Oldest first</option></select></label>
         </div>
-      </div>
-      <div class="toolbar-right">
-        <div class="last-added"><span class="last-added-label">Last added</span><button class="last-added-name" id="lastAddedButton" type="button" disabled title="No figures added yet"><span id="lastAddedText">None yet</span></button></div>
-        <label for="sortSelect">Sort <select id="sortSelect"><option value="az">Name A–Z</option><option value="za">Name Z–A</option><option value="high" id="sortHigh">Total: High–Low</option><option value="low" id="sortLow">Total: Low–High</option><option value="new">Newest first</option><option value="old">Oldest first</option></select></label>
-      </div>
+      </section>
+      <section id="drawPanel" class="draw-panel" aria-label="Random draw status">
+        <div class="draw-details"><div class="draw-count" id="drawCount" role="status">🎲 0 available / 0 Main figures</div><div class="draw-legend">Normal name = available · <strong>Orange = excluded</strong></div><div class="draw-sponsor"><b>🐧 Penguin Protection Industries™</b><br>Official Random Draw Sponsor<em>“Some things should NEVER be picked twice.”</em></div></div>
+        <img class="sponsor-picture" src="./ppi-sponsor.webp" width="330" height="266" alt="Penguin Protection Industries mascot in safety equipment" loading="lazy">
+      </section>
+      <div class="home-draw-result"><span id="randomResult" role="status" aria-live="polite">Draw a Main figure or search your collection.</span><button id="viewDrawnButton" class="btn tiny hidden" type="button">View in Main</button></div>
+      <section id="searchResultsSection" class="hidden" aria-label="Search results from all lists"><div class="results-heading"><strong id="searchResultsCount">0 results</strong><span>Tap a name to edit or move it</span></div><div id="searchTable" class="panel table-holder" tabindex="0" role="region" aria-label="Search results across all categories"></div><p class="hint hidden" id="noSearchResults">No matching figures across your three lists.</p></section>
+      <p class="footnote">Model List v2.0 · Zero-default ratings · All data remains on this device. Export a JSON backup regularly.</p>
     </section>
-
-    <section id="drawPanel" class="draw-panel hidden" aria-label="Random draw status">
-      <div class="draw-details">
-        <div class="draw-count" id="drawCount" role="status">🎲 0 available / 0 Main figures</div>
-        <div class="draw-legend">Normal name = available · <strong>Orange = excluded</strong></div>
-        <div class="draw-sponsor"><b>🐧 Penguin Protection Industries™</b><br>Official Random Draw Sponsor<em>“Some things should NEVER be picked twice.”</em></div>
-      </div>
-      <img class="sponsor-picture" src="./ppi-sponsor.webp" width="330" height="266" alt="Penguin Protection Industries mascot gives a thumbs-up in safety equipment and holds a Stay Clean Stay Lucky sign" loading="lazy">
+    <section id="listScreen" class="hidden" aria-label="Figure list">
+      <div class="list-screen-header"><div><h2 id="listScreenTitle">Main list</h2><p id="listScreenHint" class="hint">Tap any figure to edit or move it to a different list.</p></div><button type="button" id="backHomeButton" class="btn tiny">⌂ Home</button></div>
+      <div class="results-heading"><span id="resultsCount">0 figures</span><span>Tap a name to edit or move · Autosaved</span></div>
+      <section id="listSection" aria-label="Models"><div id="figureTable" class="panel table-holder" tabindex="0" role="region" aria-label="Figure database, scroll for more entries"></div><div id="emptyState" class="panel empty hidden"><div class="symbol" aria-hidden="true">▤</div><strong id="emptyTitle">No figures yet</strong><p id="emptyDescription">Add figures from Home.</p><button class="btn primary" type="button" id="emptyAddButton">⌂ Go to Home</button></div></section>
     </section>
-
-    <div class="results-heading"><span id="resultsCount">0 figures</span><span id="randomResult" role="status" aria-live="polite">Tap a name to edit · Autosaved</span></div>
-    <section id="listSection" aria-label="Models">
-      <div id="figureTable" class="panel table-holder" tabindex="0" role="region" aria-label="Figure database, scroll for more entries"></div>
-      <div id="emptyState" class="panel empty hidden">
-        <div class="symbol" aria-hidden="true">▤</div>
-        <strong id="emptyTitle">No figures yet</strong>
-        <p id="emptyDescription">Add your first figure to get started.</p>
-        <button class="btn primary" type="button" id="emptyAddButton">＋ Add figure</button>
-      </div>
-    </section>
-    <p class="footnote">Model List v1.9.1 · Main List draws never repeat an excluded figure. Search still checks all three lists. Your figures and backups stay on this device.</p>
   </div>
 
   <dialog id="figureDialog" aria-labelledby="figureDialogTitle">
     <form id="figureForm" class="modal-body" novalidate>
-      <div class="modal-head"><div><h2 id="figureDialogTitle">Add a figure</h2><p>Anti-Andy mode: all five numbers (1–10) must be filled before saving.</p></div><button class="close" type="button" data-close="figureDialog" aria-label="Close">×</button></div>
+      <div class="modal-head"><div><h2 id="figureDialogTitle">Add a figure</h2><p>Every rating starts at 0. Choose a score from 0–10 for any field you want to change.</p></div><button class="close" type="button" data-close="figureDialog" aria-label="Close">×</button></div>
       <div class="form-row"><label class="control-label" for="figureName">Model figure name *</label><input class="field" id="figureName" maxlength="200" required placeholder="e.g. Model Figure A" autocomplete="off"></div>
       <div class="warning form-alert hidden" id="duplicateValidation" role="alert"></div>
-      <p class="entry-progress" id="figureProgress">0 of 5 numbers filled · All five required</p>
-      <div class="number-grid" id="numberFields"></div>
-      <div class="draw-switch-row hidden" id="drawSettingRow">
-        <label class="draw-switch-label" for="includeInDraw"><span>🎲 Include in random draw</span><input class="switch-input" type="checkbox" id="includeInDraw" role="switch" aria-describedby="drawSettingHint"></label>
-        <p class="draw-switch-hint" id="drawSettingHint">ON — available for the next draw.</p>
-      </div>
+      <div class="form-row"><label class="control-label" for="figureCategory">Send to / Move to</label><select id="figureCategory" aria-describedby="categoryHint"><option value="main">Main list</option><option value="unticked">Unticked list</option><option value="unwanted">Don't Want</option></select><p id="categoryHint" class="hint">Moving a figure preserves its ID and saved information.</p></div>
+      <div id="numberEntrySection"><p class="entry-progress" id="figureProgress">All five ratings start at 0 · Choose 0–10</p><div class="number-grid" id="numberFields"></div></div>
+      <div class="draw-switch-row hidden" id="drawSettingRow"><label class="draw-switch-label" for="includeInDraw"><span>🎲 Include in random draw</span><input class="switch-input" type="checkbox" id="includeInDraw" role="switch" aria-describedby="drawSettingHint"></label><p class="draw-switch-hint" id="drawSettingHint">ON — available for the next draw.</p></div>
       <div class="warning form-alert hidden" id="figureValidation" role="alert"></div>
       <div class="modal-footer"><button class="btn danger hidden" id="deleteButton" type="button">Delete</button><div class="right"><button class="btn" type="button" data-close="figureDialog">Cancel</button><button class="btn primary" type="submit" id="saveFigureButton">Save figure</button></div></div>
-    </form>
-  </dialog>
-
-  <dialog id="unwantedDialog" aria-labelledby="unwantedDialogTitle">
-    <form id="unwantedForm" class="modal-body" novalidate>
-      <div class="modal-head"><div><h2 id="unwantedDialogTitle">Add to Don't Want</h2><p>Name only — no numbers, totals, or tick boxes.</p></div><button class="close" type="button" data-close="unwantedDialog" aria-label="Close">×</button></div>
-      <div class="form-row"><label class="control-label" for="unwantedName">Model figure name *</label><input class="field" id="unwantedName" maxlength="200" required placeholder="e.g. Figure I don't want" autocomplete="off"></div>
-      <div class="warning form-alert hidden" id="unwantedDuplicateValidation" role="alert"></div>
-      <div class="modal-footer"><button class="btn danger hidden" id="deleteUnwantedButton" type="button">Delete</button><div class="right"><button class="btn" type="button" data-close="unwantedDialog">Cancel</button><button class="btn primary" type="submit" id="saveUnwantedButton">Add to list</button></div></div>
     </form>
   </dialog>
 
@@ -349,7 +336,7 @@
       </form>
       <div class="divider"></div>
       <label class="control-label">Backup &amp; export</label>
-      <p class="hint">JSON saves all three lists and every figure’s draw eligibility. CSV includes a Draw Available column; Don't Want has empty number, tick and draw fields. Restoring JSON replaces all three lists after confirmation. Older backups still restore correctly.</p>
+      <p class="hint">JSON includes all three categories, hidden saved numbers and draw eligibility. CSV shows each figure’s category. Restoring JSON replaces all current data after confirmation. Older backups remain compatible.</p>
       <div class="settings-actions">
         <button class="btn" id="exportJson" type="button">↓ Backup JSON</button>
         <button class="btn" id="exportCsv" type="button">↓ Export CSV</button>
@@ -367,13 +354,13 @@
       'use strict';
       const STORAGE_KEY = 'model-list-v1';
       const defaultColumns = ['Number 1','Number 2','Number 3','Number 4','Number 5'];
-      let data = {version:3,columns:[...defaultColumns],figures:[],unwanted:[]};
+      let data = {version:5,columns:[...defaultColumns],figures:[],unwanted:[]};
       let editingId = null;
       let unwantedEditingId = null;
       let figureSnapshot = '';
       let unwantedSnapshot = '';
       let pickedId = null;
-      let activeList = 'main'; // Existing checked state is authoritative: no migration or loss of data.
+      let activeList = 'home'; // Older saved tick status maps directly to Main versus Unticked. No data deletion.
       let toastTimer;
       const $ = id => document.getElementById(id);
       const escapeCSV = value => '"' + String(value ?? '').replace(/"/g,'""') + '"';
@@ -385,7 +372,12 @@
           const testKey = STORAGE_KEY + '-test';
           localStorage.setItem(testKey,'ok');localStorage.removeItem(testKey);
           const raw = localStorage.getItem(STORAGE_KEY);
-          if (raw) data = validateData(JSON.parse(raw));
+          if (raw) {
+            const previous=JSON.parse(raw);
+            data=validateData(previous);
+            // Persist automatic blank-to-zero migration once, without changing saved 1–10 ratings.
+            if (previous.version !== 5) save();
+          }
         } catch (error) {
           $('storageWarning').classList.remove('hidden');
           console.warn('Local storage unavailable or backup invalid:',error);
@@ -403,7 +395,7 @@
         const ids = new Set();
         const figures = obj.figures.map((f,i) => {
           if (!f || typeof f.name !== 'string' || !f.name.trim()) throw Error('Invalid figure at row ' + (i+1));
-          const values = Array.isArray(f.values) && f.values.length === 5 ? f.values.map(v => String(v ?? '').trim()) : Array(5).fill('');
+          const values = Array.isArray(f.values) && f.values.length === 5 ? f.values.map(v => String(v ?? '').trim() || '0') : Array(5).fill('0');
           if (values.some(v => !/^\d*$/.test(v) || v.length > 30)) throw Error('Invalid number at row ' + (i+1));
           let id = typeof f.id === 'string' && f.id.length < 100 ? f.id : makeId();
           if (ids.has(id)) id = makeId(); ids.add(id);
@@ -419,11 +411,14 @@
           if (!f || typeof f.name !== 'string' || !f.name.trim()) throw Error('Invalid Don’t Want name at row '+(i+1));
           let id = typeof f.id === 'string' && f.id.length < 100 ? f.id : makeId();
           if (ids.has(id)) id=makeId();ids.add(id);
-          return {id,name:f.name.trim().slice(0,200),
+          // Preserve any scores and draw status saved when a numbered figure moves to Don't Want.
+          const storedValues=Array.isArray(f.values) && f.values.length===5 ? f.values.map(v=>String(v ?? '').trim() || '0') : Array(5).fill('0');
+          if(storedValues.some(v=> !/^\d*$/.test(v) || v.length>30)) throw Error('Invalid hidden numbers at Don’t Want row '+(i+1));
+          return {id,name:f.name.trim().slice(0,200),values:storedValues,inDraw:f.inDraw !== false,
                   createdAt:Number.isFinite(f.createdAt) ? f.createdAt : Date.now()+i,
                   updatedAt:Number.isFinite(f.updatedAt) ? f.updatedAt : Date.now()};
         });
-        return {version:3,columns,figures,unwanted};
+        return {version:5,columns,figures,unwanted};
       }
       function toast(message) {
         clearTimeout(toastTimer);
@@ -439,7 +434,7 @@
         // Clearing the search restores the selected list without moving or duplicating data.
         const result = search
           ? allRecords().filter(f => f.name.toLocaleLowerCase().includes(search) || (Array.isArray(f.values) && f.values.some(v => v.toLocaleLowerCase().includes(search))))
-          : activeList === 'unwanted' ? [...data.unwanted] : data.figures.filter(f => f.done === (activeList === 'main'));
+          : activeList === 'unwanted' ? [...data.unwanted] : data.figures.filter(f => f.done === (activeList !== 'unticked'));
         const compareNames = (a,b) => a.name.localeCompare(b.name,undefined,{numeric:true,sensitivity:'base'}) || a.createdAt-b.createdAt;
         result.sort((a,b) => {
           if (sort === 'za') return -compareNames(a,b);
@@ -455,16 +450,8 @@
         });
         return result;
       }
-      function setDone(id,checked) {
-        const figure = data.figures.find(f => f.id === id);
-        if (!figure) return;
-        figure.done = checked;
-        figure.updatedAt = Date.now();
-        save();render();
-        toast(checked ? 'Moved to Main list ✓' : 'Moved to Unticked list');
-      }
       const normaliseName = name => String(name ?? '').normalize('NFKC').trim().replace(/\s+/g,' ').toLocaleLowerCase();
-      const validFigureNumber = value => /^(?:[1-9]|10)$/.test(String(value ?? '').trim());
+      const validFigureNumber = value => /^(?:0|[1-9]|10)$/.test(String(value ?? '').trim());
       const allRecords=()=>[...data.figures,...data.unwanted];
       const recordList=figure=>data.unwanted.some(f=>f.id===figure.id) ? "Don't Want" : (figure.done ? 'Main' : 'Unticked');
       function duplicateFor(name,ignoreId=null) {
@@ -502,7 +489,7 @@
       }
       const needsNumberCheck = figure => figure.values.some(value => !validFigureNumber(value));
       function currentFigureSnapshot() {
-        return JSON.stringify([$('figureName').value,...Array.from({length:5},(_,i) => $('value'+i)?.value ?? ''),$('drawSettingRow').classList.contains('hidden') ? null : $('includeInDraw').checked]);
+        return JSON.stringify([$('figureName').value,$('figureCategory').value,...Array.from({length:5},(_,i) => $('value'+i)?.value ?? ''),$('includeInDraw').checked]);
       }
       function refreshDrawSettingHint() {
         $('drawSettingHint').textContent=$('includeInDraw').checked
@@ -513,7 +500,7 @@
         const values = Array.from({length:5},(_,i) => $('value'+i).value.trim());
         const count = values.filter(validFigureNumber).length;
         const progress = $('figureProgress');
-        progress.textContent = count === 5 ? '✓ All five numbers complete — ready to save' : count+' of 5 numbers complete · All five required (1–10)';
+        progress.textContent = count === 5 ? '✓ Five ratings set · 0–10 (zero counts as a valid rating)' : count+' of 5 ratings valid · Choose 0–10';
         progress.classList.toggle('all-set',count === 5);
         // Clear invalid state as soon as each field is corrected.
         for (let i=0;i<5;i++) {
@@ -528,310 +515,216 @@
         const invalid=values.map((value,i) => validFigureNumber(value) ? -1 : i).filter(i => i!==-1);
         if (!invalid.length) return false;
         invalid.forEach(i => { $('value'+i).classList.add('field-error');$('value'+i).setAttribute('aria-invalid','true'); });
-        $('figureValidation').textContent='🚨 ANTI-ANDY ALERT! '+invalid.length+' number '+(invalid.length===1?'field needs':'fields need')+' completing. Fill all five with numbers from 1 to 10 before saving.';
+        $('figureValidation').textContent='🚨 ANTI-ANDY ALERT! '+invalid.length+' '+(invalid.length===1?'rating is':'ratings are')+' outside 0–10. Please select a valid value before saving.';
         $('figureValidation').classList.remove('hidden');
         $('value'+invalid[0]).focus();
         return true;
       }
       function requestFigureClose() {
-        if (currentFigureSnapshot() !== figureSnapshot && !confirm('Discard these unsaved changes? An incomplete figure cannot be saved.')) return;
+        if (currentFigureSnapshot() !== figureSnapshot && !confirm('Discard these unsaved changes?')) return;
         closeDialog($('figureDialog'));
       }
       function figureTotal(figure) {
-        // Blank fields count as zero. The existing five values are never changed.
+        // Ratings are always present (0–10) for new records; retain out-of-range legacy data until reviewed.
         return figure.values.reduce((sum,value) => sum + (Number(value) || 0),0);
       }
-      function tickNode(figure) {
-        const input = el('input','check');
-        input.type = 'checkbox';input.checked = figure.done;
-        input.setAttribute('aria-label',(figure.done ? 'Untick ' : 'Tick off ') + figure.name);
-        input.addEventListener('change',() => setDone(figure.id,input.checked));
-        return input;
-      }
-      function renderTable(figures) {
-        const globalSearch=isGlobalSearch();
+      function renderTable(figures,holderId='figureTable') {
+        const globalSearch=holderId==='searchTable';
         const isUnwanted=!globalSearch && activeList==='unwanted';
         const unwantedIds=new Set(data.unwanted.map(f=>f.id));
-        const duplicateIdsSet=duplicateIds();
-        const holder = $('figureTable');holder.replaceChildren();
-        const table = el('table',globalSearch?'global-search-list':isUnwanted?'simple-list':'');
-        const head = el('thead'),hr = el('tr');
-        const rowHead=el('th','row-index','#');rowHead.scope='col';rowHead.title='Row number in the current view';hr.append(rowHead);
-        const nameHead = el('th','','Model figure');nameHead.scope='col';
-        if (globalSearch) nameHead.title='A label under every matching name shows which list contains it';
-        hr.append(nameHead);
-        if (!isUnwanted) {
-          const totalHead=el('th','total','Total');totalHead.scope='col';
-          totalHead.title='Sum of the five number fields (not used for Don’t Want)';hr.append(totalHead);
-          const tickHead=el('th','tick','Tick');tickHead.scope='col';hr.append(tickHead);
-        }
+        const duplicates=duplicateIds();
+        const holder=$(holderId);holder.replaceChildren();
+        const table=el('table',globalSearch?'global-search-list':isUnwanted?'simple-list':'');
+        const head=el('thead'),hr=el('tr');
+        const rowHead=el('th','row-index','#');rowHead.scope='col';hr.append(rowHead);
+        const nameHead=el('th','','Model figure');nameHead.scope='col';hr.append(nameHead);
+        if (!isUnwanted) { const totalHead=el('th','total','Total');totalHead.scope='col';hr.append(totalHead); }
         head.append(hr);table.append(head);
-        const body = el('tbody');
-        for (const [i,figure] of figures.entries()) {
+        const body=el('tbody');
+        for(const [i,figure] of figures.entries()) {
           const entryIsUnwanted=unwantedIds.has(figure.id);
-          const tr = el('tr',(!entryIsUnwanted && figure.done ? 'row-done ' : '') + (figure.id === pickedId ? 'row-picked ' : '') + (!entryIsUnwanted && needsNumberCheck(figure) ? 'needs-check ' : '') + (duplicateIdsSet.has(figure.id) ? 'duplicate-row' : ''));
+          const tr=el('tr',(figure.id===pickedId?'row-picked ':'')+(!entryIsUnwanted && needsNumberCheck(figure)?'needs-check ':'')+(duplicates.has(figure.id)?'duplicate-row':''));
           tr.append(el('td','row-index',String(i+1)));
           const nameCell=el('td','name-cell');
-          const excluded=!entryIsUnwanted && figure.done && figure.inDraw === false;
-          const nameButton=el('button','figure-name-button'+(excluded?' draw-excluded':''),figure.name);
-          nameButton.type='button';nameButton.title='Edit '+figure.name+(excluded?' · EXCLUDED from random draw':'');
-          nameButton.setAttribute('aria-label','Edit '+figure.name+' in '+recordList(figure)+(excluded?', currently excluded from random draw':''));
-          nameButton.addEventListener('click',() => entryIsUnwanted ? openUnwanted(figure.id) : openFigure(figure.id));
-          nameCell.append(nameButton);
-          if (globalSearch) {
-            const listName=recordList(figure);
-            nameCell.append(el('span','list-location '+(entryIsUnwanted?'unwanted':figure.done?'main':'unticked'),listName));
-          }
+          const excluded=!entryIsUnwanted && figure.done && figure.inDraw===false;
+          const button=el('button','figure-name-button'+(excluded?' draw-excluded':''),figure.name);
+          button.type='button';button.title='Edit or move '+figure.name;
+          button.setAttribute('aria-label','Edit or move '+figure.name+' in '+recordList(figure));
+          button.addEventListener('click',()=>openFigure(figure.id));
+          nameCell.append(button);
+          if(globalSearch) nameCell.append(el('span','list-location '+(entryIsUnwanted?'unwanted':figure.done?'main':'unticked'),recordList(figure)));
           tr.append(nameCell);
-          if (!isUnwanted) {
+          if(!isUnwanted) {
             const totalCell=el('td','total');
-            const tickTd = el('td','tick');
-            if (entryIsUnwanted) {
-              totalCell.append(el('span','no-value','—'));
-              tickTd.append(el('span','no-value','—'));
-              totalCell.title="Don't Want entries do not have number fields";
-              tickTd.title="Don't Want entries do not use tick boxes";
-            } else {
-              const partial=needsNumberCheck(figure);
-              totalCell.title=partial ? 'Partial total: one or more of the five fields still needs checking' : 'Total from five numbers';
-              totalCell.append(el('span','number-text'+(partial?' partial':''),String(figureTotal(figure))));
-              if (partial) totalCell.append(el('span','partial-mark','*'));
-              tickTd.append(tickNode(figure));
-            }
-            tr.append(totalCell,tickTd);
+            if (entryIsUnwanted) totalCell.append(el('span','no-value','—'));
+            else {const partial=needsNumberCheck(figure);totalCell.append(el('span','number-text'+(partial?' partial':''),String(figureTotal(figure))));if(partial)totalCell.append(el('span','partial-mark','*'));}
+            tr.append(totalCell);
           }
           body.append(tr);
         }
         table.append(body);holder.append(table);
       }
       function render() {
-        const figures=getVisibleFigures();
-        const globalSearch=isGlobalSearch();
-        const total=data.figures.length,done=data.figures.filter(f => f.done).length;
+        const home=activeList==='home';
+        const globalSearch=home && isGlobalSearch();
+        const total=data.figures.length,done=data.figures.filter(f=>f.done).length;
+        const allCount=total+data.unwanted.length;
         $('mainListCount').textContent=done.toLocaleString();
         $('untickedListCount').textContent=(total-done).toLocaleString();
         $('unwantedListCount').textContent=data.unwanted.length.toLocaleString();
-        $('summarySection').classList.toggle('hidden',activeList==='unwanted');
-        $('addButton').textContent=activeList==='unwanted' ? '＋ Add unwanted' : '＋ Add figure';
-        $('sortHigh').hidden=activeList==='unwanted' && !globalSearch;
-        $('sortLow').hidden=activeList==='unwanted' && !globalSearch;
-        for (const [list,id] of [['main','mainListButton'],['unticked','untickedListButton'],['unwanted','unwantedListButton']]) {
-          const current=activeList===list,button=$(id);
-          button.classList.toggle('active',current);
-          if (current) button.setAttribute('aria-current','page'); else button.removeAttribute('aria-current');
+        $('homeScreen').classList.toggle('hidden',!home);
+        $('listScreen').classList.toggle('hidden',home);
+        for(const [list,id] of [['home','homeButton'],['main','mainListButton'],['unticked','untickedListButton'],['unwanted','unwantedListButton']]) {
+          const b=$(id);b.classList.toggle('active',activeList===list);
+          if(activeList===list)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');
         }
-        const duplicateSet=duplicateIds();
-        $('duplicateNotice').classList.toggle('hidden',duplicateSet.size===0);
-        $('duplicateMessage').textContent=duplicateSet.size ? '⚑ Possible duplicates: '+duplicateSet.size+' saved names match across your three lists. Existing records are preserved; please review them.' : '';
-        const incompleteCount=data.figures.filter(needsNumberCheck).length;
-        $('incompleteNotice').classList.toggle('hidden',incompleteCount===0 || activeList==='unwanted');
-        $('incompleteMessage').textContent=incompleteCount ? '🚨 Anti-Andy check: '+incompleteCount+' existing '+(incompleteCount===1?'figure needs':'figures need')+' all five numbers checked. * means a partial total.' : '';
-        const range=figures.length;
-        const onMainDraw=activeList==='main' && !globalSearch;
+        const dup=duplicateIds();
+        $('duplicateNotice').classList.toggle('hidden',dup.size===0);
+        $('duplicateMessage').textContent=dup.size ? '⚑ '+dup.size+' records have matching names across the three lists. Existing data is safe; review when convenient.' : '';
+        const incomplete=data.figures.filter(needsNumberCheck).length;
+        $('incompleteNotice').classList.toggle('hidden',incomplete===0);
+        $('incompleteMessage').textContent=incomplete ? '🚨 Anti-Andy check: '+incomplete+' older '+(incomplete===1?'figure has':'figures have')+' an out-of-range rating. Review and select 0–10.' : '';
         const mainFigures=data.figures.filter(f=>f.done);
-        const available=mainFigures.filter(f=>f.inDraw !== false).length;
-        $('drawPanel').classList.toggle('hidden',!onMainDraw);
+        const available=mainFigures.filter(f=>f.inDraw!==false).length;
         $('drawCount').textContent='🎲 '+available.toLocaleString()+' available / '+mainFigures.length.toLocaleString()+' Main figures';
-        $('randomButton').disabled=globalSearch || (onMainDraw ? available===0 : range===0);
-        $('randomButton').textContent=globalSearch ? '🎲 Clear search to draw'
-          : onMainDraw ? (available ? '🎲 Draw · '+available.toLocaleString()+' left' : '🎲 All drawn')
-          : range ? '🎲 Pick 1–'+range.toLocaleString() : '🎲 No rows yet';
-        $('randomButton').setAttribute('aria-label',globalSearch ? 'Clear search before drawing or picking rows'
-          : onMainDraw ? (available?'Draw one of '+available+' available Main List figures':'All Main List figures have been drawn')
-          : range ? 'Pick a random row from 1 to '+range : 'No rows to pick');
-        const pickedIndex=figures.findIndex(f => f.id === pickedId);
-        if (pickedIndex === -1) pickedId=null;
-        const picked=pickedIndex>=0 ? figures[pickedIndex] : null;
-        $('randomResult').textContent=picked ? '🎲 #'+(pickedIndex+1)+' — '+picked.name+(onMainDraw?' · excluded from next draw':globalSearch?' · '+recordList(picked):'')
-          : onMainDraw && mainFigures.length && !available ? 'All drawn · Tap a name to turn Include in Draw ON'
-          : globalSearch ? 'Searching all three lists · Tap a name to edit':'Tap a name to edit · Autosaved';
-        $('randomResult').title=picked ? 'Random choice: row '+(pickedIndex+1)+' — '+picked.name+(globalSearch?' in '+recordList(picked):'') : ''; 
-        // Created-at order is independent of the active search and sort controls.
-        // Later array entries break timestamp ties, retaining the latest saved addition.
-        const latest=(activeList==='unwanted' ? data.unwanted : data.figures).reduce((last,figure) => !last || figure.createdAt >= last.createdAt ? figure : last,null);
-        const lastButton=$('lastAddedButton');
-        $('lastAddedText').textContent=latest ? latest.name : 'None yet';
-        lastButton.title=latest ? 'Edit last added: '+latest.name : 'No figures added yet';
-        lastButton.setAttribute('aria-label',latest ? 'Edit last added figure: '+latest.name : 'No figures added yet');
-        lastButton.disabled=!latest;
-        lastButton.dataset.figureId=latest ? latest.id : '';
-        lastButton.dataset.figureList=activeList==='unwanted' ? 'unwanted' : 'figures';
-        $('totalCount').textContent=total.toLocaleString();
+        $('randomButton').disabled=globalSearch || available===0;
+        $('randomButton').textContent=globalSearch?'🎲 Clear search to draw':available?'🎲 Draw · '+available.toLocaleString()+' left':'🎲 All drawn';
+        $('randomButton').setAttribute('aria-label',globalSearch?'Clear search to draw':available?'Randomly draw one of '+available+' available Main figures':'All Main figures have been drawn');
+        const picked=mainFigures.find(f=>f.id===pickedId);
+        const sortedMain=getSortedMainFigures();
+        const pickedIndex=picked?sortedMain.findIndex(f=>f.id===pickedId):-1;
+        $('randomResult').textContent=picked?'🎲 #'+(pickedIndex+1)+' — '+picked.name+' · excluded from future draws':mainFigures.length&&!available?'All figures drawn. Open one in Main and turn Include in Draw ON.': 'Draw from Main without repeats · Autosaved';
+        $('viewDrawnButton').classList.toggle('hidden',!picked);
+        const latest=allRecords().reduce((acc,f)=>!acc||f.createdAt>=acc.createdAt?f:acc,null);
+        $('lastAddedText').textContent=latest?latest.name:'None yet';
+        $('lastAddedButton').disabled=!latest;
+        $('lastAddedButton').dataset.figureId=latest?latest.id:'';
+        $('lastAddedButton').title=latest?'Edit '+latest.name:'No figures yet';
+        $('totalCount').textContent=allCount.toLocaleString();
         $('doneCount').textContent=done.toLocaleString();
-        $('leftCount').textContent=(total-done).toLocaleString();
-        const listTotal=activeList==='main' ? done : activeList==='unticked' ? total-done : data.unwanted.length;
-        const listTitle=activeList==='main' ? 'Main list: ' : activeList==='unticked' ? 'Unticked list: ' : "Don't Want: ";
-        $('resultsCount').textContent=globalSearch ? 'All 3 lists: '+figures.length.toLocaleString()+' '+(figures.length===1?'match':'matches') : listTitle+figures.length.toLocaleString() + ' ' + (figures.length === 1 ? 'figure' : 'figures') + (figures.length !== listTotal ? ' shown' : '');
-        const empty=figures.length===0;
-        $('emptyState').classList.toggle('hidden',!empty);
-        $('figureTable').classList.toggle('hidden',empty);
-        if (empty) {
-          const isFirst=total===0 && data.unwanted.length===0;
-          const isFiltered=Boolean($('searchInput').value.trim());
-          $('emptyTitle').textContent=isFiltered?'Nothing matched':activeList==='unwanted'?"Don't Want is empty":isFirst?'No figures yet':activeList==='main'?'No ticked figures yet':'No unticked figures';
-          $('emptyDescription').textContent=isFiltered?'No matching names or numbers in Main, Unticked or Don’t Want. Try another search.':activeList==='unwanted'?"Add names for figures you don't want. No numbers or tick boxes needed.":isFirst?'Add your first figure to get started. New figures begin in the Unticked list.':activeList==='main'?'Tick figures in the Unticked list to send them here.':'Any figure you untick in Main will move here automatically.';
-          $('emptyAddButton').textContent=activeList==='unwanted'?'＋ Add unwanted':'＋ Add figure';
-          $('emptyAddButton').classList.toggle('hidden',isFiltered);
-        } else {renderTable(figures);}
+        $('leftCount').textContent=(allCount-done).toLocaleString();
+        $('searchResultsSection').classList.toggle('hidden',!globalSearch);
+        if(globalSearch){const matches=getVisibleFigures();$('searchResultsCount').textContent=matches.length+' matching '+(matches.length===1?'figure':'figures');$('searchTable').classList.toggle('hidden',matches.length===0);$('noSearchResults').classList.toggle('hidden',matches.length>0);renderTable(matches,'searchTable');}
+        if(home)return;
+        const figures=getVisibleFigures();
+        const titles={main:'Main list',unticked:'Unticked list',unwanted:"Don't Want"};
+        $('listScreenTitle').textContent=titles[activeList];
+        $('listScreenHint').textContent=activeList==='main'?'Tap a figure to edit, move, or change Include in Draw. Orange names are excluded.':activeList==='unticked'?'Tap a figure to edit its numbers or move it to Main or Don’t Want.':'Tap a name to edit or move it. No numbers displayed here.';
+        $('resultsCount').textContent=figures.length+' '+(figures.length===1?'figure':'figures');
+        $('emptyState').classList.toggle('hidden',figures.length>0);
+        $('figureTable').classList.toggle('hidden',figures.length===0);
+        if(figures.length)renderTable(figures);
+        else { $('emptyTitle').textContent='Nothing in '+titles[activeList];$('emptyDescription').textContent='Add your next figure from Home and choose this list as the destination.'; }
+      }
+      function getSortedMainFigures(){
+        const saved=activeList,search=$('searchInput').value;
+        activeList='main';$('searchInput').value='';
+        try{return getVisibleFigures();}finally{activeList=saved;$('searchInput').value=search;}
       }
       function pickRandomRow() {
-        // Draw eligibility applies ONLY to the unfiltered Main List.
-        // On Unticked/Don't Want, preserve the original non-consuming random row picker.
-        if (isGlobalSearch()) return;
-        const mainDraw=activeList==='main';
-        const visible=getVisibleFigures();
-        const pool=mainDraw ? visible.filter(f=>f.inDraw !== false) : visible;
-        if (!pool.length) return;
+        if(activeList!=='home'||isGlobalSearch())return;
+        const pool=data.figures.filter(f=>f.done&&f.inDraw!==false);
+        if(!pool.length)return;
         const chosen=pool[Math.floor(Math.random()*pool.length)];
-        pickedId=chosen.id;
-        if (mainDraw) {
-          const saved=data.figures.find(f=>f.id===chosen.id);
-          if (!saved) return;
-          saved.inDraw=false;
-          saved.updatedAt=Date.now();
-          save();
-        }
-        render();
-        const selected=$('figureTable').querySelector('tr.row-picked');
-        if (selected) selected.scrollIntoView({block:'nearest',behavior:'smooth'});
+        chosen.inDraw=false;chosen.updatedAt=Date.now();pickedId=chosen.id;
+        save();render();
       }
-      function handleViewChange() {
-        if (!isGlobalSearch() && activeList==='unwanted' && ['high','low'].includes($('sortSelect').value)) $('sortSelect').value='az';
-        pickedId=null;render();
-      }
-      function switchList(list) {
-        if (activeList===list) return;
-        activeList=list;
-        if (list==='unwanted' && ['high','low'].includes($('sortSelect').value)) $('sortSelect').value='az';
-        pickedId=null;
-        $('searchInput').value=''; // Switch to the whole other list, not a stale search result.
-        render();
-        $('figureTable').scrollTop=0;
+      function handleViewChange(){render();}
+      function switchList(list,keepPicked=false){
+        if(!['home','main','unticked','unwanted'].includes(list))return;
+        activeList=list;if(!keepPicked)pickedId=null;
+        if(list!=='home')$('searchInput').value='';
+        render();$('figureTable').scrollTop=0;
+        window.scrollTo(0,0);
       }
       function reviewNextDuplicate() {
         const duplicates=duplicateIds();
         const figure=allRecords().find(f => duplicates.has(f.id));
         if (figure) {
           const isUnwanted=data.unwanted.some(f=>f.id===figure.id);
-          switchList(isUnwanted?'unwanted':figure.done?'main':'unticked');
-          if (isUnwanted) openUnwanted(figure.id); else openFigure(figure.id);
+          openFigure(figure.id);
         }
       }
       function showDialog(dialog) { if (!dialog.open) dialog.showModal(); }
       function closeDialog(dialog) { if (dialog.open) dialog.close(); }
-      function openFigure(id=null) {
+      function updateFigureCategory(){
+        const c=$('figureCategory').value;
+        $('numberEntrySection').classList.toggle('hidden',c==='unwanted');
+        $('drawSettingRow').classList.toggle('hidden',c!=='main');
+        $('categoryHint').textContent=c==='unwanted'?'Name only on the Don’t Want screen. Its five ratings default to 0, and any previously entered scores are preserved.':c==='main'?'Five ratings default to 0. This figure can take part in random Main draws.':'Five ratings default to 0. No random draw on Unticked.';
+        $('figureValidation').classList.add('hidden');
+        if(c!=='unwanted')updateEntryProgress();
+      }
+      function openFigure(id=null){
         editingId=id;
-        const figure=id ? data.figures.find(f => f.id===id) : null;
-        $('figureDialogTitle').textContent=figure?'Edit figure':'Add a figure';
+        const figure=id ? allRecords().find(f=>f.id===id) : null;
+        const category=figure ? (data.unwanted.some(f=>f.id===id)?'unwanted':figure.done?'main':'unticked') : $('newDestination').value;
+        $('figureDialogTitle').textContent=figure?'Edit / move figure':'Add a figure';
         $('saveFigureButton').textContent=figure?'Save changes':'Add figure';
         $('deleteButton').classList.toggle('hidden',!figure);
-        $('figureName').value=figure ? figure.name : '';
-        // Only Main List figures have a draw-eligibility switch.
-        $('drawSettingRow').classList.toggle('hidden',!figure || !figure.done);
-        $('includeInDraw').checked=figure ? figure.inDraw !== false : true;
+        $('figureName').value=figure?figure.name:'';
+        $('figureCategory').value=category;
+        $('includeInDraw').checked=figure?figure.inDraw!==false:true;
         refreshDrawSettingHint();
         showDuplicateAlert(null);
         const container=$('numberFields');container.replaceChildren();
-        for (let i=0;i<5;i++) {
-          const wrap=el('div','form-row');
-          const label=el('label','control-label',data.columns[i]);label.htmlFor='value'+i;
-          const input=el('input','field');input.id='value'+i;input.type='text';input.inputMode='numeric';input.maxLength=2;input.autocomplete='off';
-          input.placeholder='Required: 1–10';input.value=figure ? figure.values[i] : '';
-          input.setAttribute('aria-required','true');
-          input.addEventListener('input',updateEntryProgress);
-          wrap.append(label,input);container.append(wrap);
+        for(let i=0;i<5;i++){
+          const wrap=el('div','form-row'),label=el('label','control-label',data.columns[i]);
+          label.htmlFor='value'+i;
+          const input=el('select','field');input.id='value'+i;
+          const previous=figure&&Array.isArray(figure.values)?String(figure.values[i]??'').trim():'0';
+          const currentValue=previous || '0';
+          for(let v=0;v<=10;v++) {
+            const option=el('option',null,String(v));option.value=String(v);input.append(option);
+          }
+          // Older backups may contain unusual values: show them clearly instead of silently erasing them.
+          if (!validFigureNumber(currentValue)) {
+            const legacy=el('option',null,currentValue+' (old value — select 0–10)');
+            legacy.value=currentValue;input.prepend(legacy);
+          }
+          input.value=currentValue;
+          input.addEventListener('change',updateEntryProgress);wrap.append(label,input);container.append(wrap);
         }
         $('figureValidation').classList.add('hidden');
-        $('numberFields').querySelectorAll('.field-error').forEach(input => input.classList.remove('field-error'));
+        updateFigureCategory();
         figureSnapshot=currentFigureSnapshot();
-        updateEntryProgress();
-        showDialog($('figureDialog'));
-        $('figureName').focus();
+        showDialog($('figureDialog'));$('figureName').focus();
       }
-      function saveFigure(event) {
+      function saveFigure(event){
         event.preventDefault();
         const name=$('figureName').value.trim();
-        if (!name) { $('figureName').focus();toast('Give your figure a name.');return; }
-        const values=Array.from({length:5},(_,i) => $('value'+i).value.trim());
-        if (showNumberAlert(values)) return;
-        const current=editingId ? data.figures.find(f => f.id===editingId) : null;
-        const nameUnchanged=current && normaliseName(current.name) === normaliseName(name);
-        const existing=nameUnchanged ? null : duplicateFor(name,editingId);
-        if (existing) {showDuplicateAlert(existing);$('figureName').focus();return;}
-        if (editingId) {
-          const figure=data.figures.find(f => f.id===editingId);
-          if (!figure) return;
-          figure.name=name;figure.values=values;
-          if (figure.done) figure.inDraw=$('includeInDraw').checked;
-          figure.updatedAt=Date.now();
-          toast('Figure updated');
-        } else {
-          data.figures.push({id:makeId(),name,values,done:false,inDraw:true,createdAt:Date.now(),updatedAt:Date.now()});
-          activeList='unticked';$('searchInput').value='';
-          toast('Figure added to Unticked list');
-        }
-        pickedId=null;save();render();closeDialog($('figureDialog'));
+        if(!name){$('figureName').focus();toast('Give your figure a name.');return;}
+        const category=$('figureCategory').value;
+        const values=Array.from({length:5},(_,i)=>$('value'+i).value.trim());
+        if(category!=='unwanted'&&showNumberAlert(values))return;
+        const current=editingId?allRecords().find(f=>f.id===editingId):null;
+        const sameName=current&&normaliseName(current.name)===normaliseName(name);
+        const duplicate=sameName?null:duplicateFor(name,editingId);
+        if(duplicate){showDuplicateAlert(duplicate);$('figureName').focus();return;}
+        const previousValues=current&&Array.isArray(current.values)?[...current.values]:Array(5).fill('0');
+        const oldDraw=current?current.inDraw!==false:true;
+        const record={id:current?current.id:makeId(),name,values:category==='unwanted'?(values.every(validFigureNumber)?values:previousValues):values,
+          inDraw:category==='main'?$('includeInDraw').checked:oldDraw,
+          createdAt:current?current.createdAt:Date.now(),updatedAt:Date.now()};
+        // Same immutable ID; update the category without duplicating or deleting any figure.
+        if(current){data.figures=data.figures.filter(f=>f.id!==record.id);data.unwanted=data.unwanted.filter(f=>f.id!==record.id);}
+        if(category==='unwanted')data.unwanted.push(record);
+        else data.figures.push({...record,done:category==='main'});
+        pickedId=null;
+        save();closeDialog($('figureDialog'));render();
+        toast((current?'Saved and moved to ':'Added to ')+ (category==='main'?'Main':category==='unticked'?'Unticked':"Don't Want"));
       }
       function reviewNextIncomplete() {
         const item=data.figures.find(needsNumberCheck);
-        if (item) openFigure(item.id);
+        if(item) openFigure(item.id);
       }
       function deleteFigure() {
-        const figure=data.figures.find(f => f.id===editingId);
+        const figure=allRecords().find(f=>f.id===editingId);
         if (!figure || !confirm('Delete "'+figure.name+'"? This cannot be undone unless you have a backup.')) return;
-        data.figures=data.figures.filter(f => f.id!==editingId);
+        data.figures=data.figures.filter(f=>f.id!==editingId);data.unwanted=data.unwanted.filter(f=>f.id!==editingId);
         pickedId=null;save();render();closeDialog($('figureDialog'));toast('Figure deleted');
       }
-      function currentUnwantedSnapshot() { return $('unwantedName').value; }
-      function showUnwantedDuplicateAlert(duplicate) {
-        const alert=$('unwantedDuplicateValidation');
-        alert.classList.toggle('hidden',!duplicate);
-        alert.textContent=duplicate ? '⚠ DUPLICATE FIGURE! "'+duplicate.name+'" is already in the '+recordList(duplicate)+' list.' : '';
-        $('unwantedName').classList.toggle('duplicate-error',Boolean(duplicate));
-        if (duplicate) $('unwantedName').setAttribute('aria-invalid','true');
-        else $('unwantedName').removeAttribute('aria-invalid');
-      }
-      function openUnwanted(id=null) {
-        unwantedEditingId=id;
-        const figure=id ? data.unwanted.find(f=>f.id===id) : null;
-        $('unwantedDialogTitle').textContent=figure?"Edit Don't Want entry":"Add to Don't Want";
-        $('saveUnwantedButton').textContent=figure?'Save changes':'Add to list';
-        $('deleteUnwantedButton').classList.toggle('hidden',!figure);
-        $('unwantedName').value=figure?figure.name:'';
-        showUnwantedDuplicateAlert(null);
-        unwantedSnapshot=currentUnwantedSnapshot();
-        showDialog($('unwantedDialog'));
-        $('unwantedName').focus();
-      }
-      function requestUnwantedClose() {
-        if (currentUnwantedSnapshot()!==unwantedSnapshot && !confirm('Discard these unsaved changes?')) return;
-        closeDialog($('unwantedDialog'));
-      }
-      function checkUnwantedNameWhileTyping() {
-        const name=$('unwantedName').value;
-        const current=unwantedEditingId ? data.unwanted.find(f=>f.id===unwantedEditingId) : null;
-        showUnwantedDuplicateAlert(current && normaliseName(current.name)===normaliseName(name) ? null : duplicateFor(name,unwantedEditingId));
-      }
-      function saveUnwanted(event) {
-        event.preventDefault();
-        const name=$('unwantedName').value.trim();
-        if (!name) { $('unwantedName').focus();toast('Give the figure a name.');return; }
-        const current=unwantedEditingId ? data.unwanted.find(f=>f.id===unwantedEditingId) : null;
-        const unchanged=current && normaliseName(current.name)===normaliseName(name);
-        const duplicate=unchanged ? null : duplicateFor(name,unwantedEditingId);
-        if (duplicate) {showUnwantedDuplicateAlert(duplicate);$('unwantedName').focus();return;}
-        if (current) {current.name=name;current.updatedAt=Date.now();toast("Don't Want entry updated");}
-        else {data.unwanted.push({id:makeId(),name,createdAt:Date.now(),updatedAt:Date.now()});toast("Added to Don't Want");}
-        activeList='unwanted';$('searchInput').value='';pickedId=null;
-        save();render();closeDialog($('unwantedDialog'));
-      }
-      function deleteUnwanted() {
-        const figure=data.unwanted.find(f=>f.id===unwantedEditingId);
-        if (!figure || !confirm('Delete "'+figure.name+'" from Don’t Want? This cannot be undone unless you have a backup.')) return;
-        data.unwanted=data.unwanted.filter(f=>f.id!==unwantedEditingId);
-        pickedId=null;save();render();closeDialog($('unwantedDialog'));toast('Entry deleted');
-      }
-      function addInCurrentList() {if (activeList==='unwanted') openUnwanted();else openFigure();}
+      function addInCurrentList(){switchList('home');openFigure();}
       function openSettings() {
         const container=$('columnNameFields');container.replaceChildren();
         data.columns.forEach((name,i) => {
@@ -860,11 +753,11 @@
         toast('JSON backup downloaded');
       }
       function exportCSV() {
-        const rows=[['Row','Model Figure','List',...data.columns,'Ticked','Draw Available']];
+        const rows=[['Row','Model Figure','List',...data.columns,'Draw Available']];
         const sorted=allRecords().sort((a,b) => a.name.localeCompare(b.name,undefined,{numeric:true,sensitivity:'base'}));
         for (const [i,f] of sorted.entries()) {
           const isUnwanted=data.unwanted.some(u=>u.id===f.id);
-          rows.push([i+1,f.name,recordList(f),...(isUnwanted?Array(5).fill(''):f.values),isUnwanted?'':f.done?'Yes':'No',isUnwanted?'':f.inDraw!==false?'Yes':'No']);
+          rows.push([i+1,f.name,recordList(f),...(isUnwanted?Array(5).fill(''):f.values),isUnwanted?'':f.inDraw!==false?'Yes':'No']);
         }
         const csv='\ufeff'+rows.map(row=>row.map(escapeCSV).join(',')).join('\r\n');
         downloadFile('Model-List-'+fileDate()+'.csv',csv,'text/csv;charset=utf-8');
@@ -877,52 +770,46 @@
           const raw=await file.text();
           const imported=validateData(JSON.parse(raw));
           if (!confirm('Restore '+imported.figures.length+' collection figures and '+imported.unwanted.length+' Don’t Want entries?\n\nThis REPLACES all three current lists and column names. Export a backup first if you want to keep them.')) return;
-          data=imported;pickedId=null;save();render();closeDialog($('settingsDialog'));toast('Backup restored');
+          data=imported;pickedId=null;activeList='home';$('searchInput').value='';save();render();closeDialog($('settingsDialog'));toast('Backup restored');
         } catch (error) { alert('Could not restore this backup: '+error.message); }
         finally { $('importFile').value=''; }
       }
       load();render();
+      $('homeButton').addEventListener('click',()=>switchList('home'));
       $('mainListButton').addEventListener('click',()=>switchList('main'));
       $('untickedListButton').addEventListener('click',()=>switchList('unticked'));
       $('unwantedListButton').addEventListener('click',()=>switchList('unwanted'));
+      $('backHomeButton').addEventListener('click',()=>switchList('home'));
       $('reviewDuplicateButton').addEventListener('click',reviewNextDuplicate);
       $('figureName').addEventListener('input',checkNameWhileTyping);
+      $('figureCategory').addEventListener('change',updateFigureCategory);
       $('includeInDraw').addEventListener('change',refreshDrawSettingHint);
-      $('addButton').addEventListener('click',addInCurrentList);
+      $('addButton').addEventListener('click',()=>openFigure());
       $('reviewIncompleteButton').addEventListener('click',reviewNextIncomplete);
-      $('emptyAddButton').addEventListener('click',addInCurrentList);
+      $('emptyAddButton').addEventListener('click',()=>switchList('home'));
       $('settingsButton').addEventListener('click',openSettings);
       $('figureForm').addEventListener('submit',saveFigure);
-      $('unwantedForm').addEventListener('submit',saveUnwanted);
-      $('unwantedName').addEventListener('input',checkUnwantedNameWhileTyping);
-      $('deleteUnwantedButton').addEventListener('click',deleteUnwanted);
       $('deleteButton').addEventListener('click',deleteFigure);
       $('columnsForm').addEventListener('submit',saveSettings);
       $('searchInput').addEventListener('input',handleViewChange);
-      $('lastAddedButton').addEventListener('click',() => {
+      $('lastAddedButton').addEventListener('click',()=>{
         const id=$('lastAddedButton').dataset.figureId;
-        if (id && $('lastAddedButton').dataset.figureList==='unwanted' && data.unwanted.some(f=>f.id===id)) openUnwanted(id);
-        else if (id && data.figures.some(figure => figure.id===id)) openFigure(id);
+        if(id)openFigure(id);
       });
       $('sortSelect').addEventListener('change',handleViewChange);
       $('randomButton').addEventListener('click',pickRandomRow);
+      $('viewDrawnButton').addEventListener('click',()=>{
+        if(!pickedId)return;switchList('main',true);
+        const row=$('figureTable').querySelector('tr.row-picked');if(row)row.scrollIntoView({block:'nearest'});
+      });
       $('exportJson').addEventListener('click',exportJSON);
       $('exportCsv').addEventListener('click',exportCSV);
-      $('importJson').addEventListener('click',() => $('importFile').click());
-      $('importFile').addEventListener('change',event => importJSON(event.target.files[0]));
-      document.querySelectorAll('[data-close]').forEach(btn => btn.addEventListener('click',() => {
-        if (btn.dataset.close === 'figureDialog') requestFigureClose();
-        else if (btn.dataset.close === 'unwantedDialog') requestUnwantedClose();
-        else closeDialog($(btn.dataset.close));
+      $('importJson').addEventListener('click',()=>$('importFile').click());
+      $('importFile').addEventListener('change',event=>importJSON(event.target.files[0]));
+      document.querySelectorAll('[data-close]').forEach(btn=>btn.addEventListener('click',()=>{
+        if(btn.dataset.close==='figureDialog')requestFigureClose();else closeDialog($(btn.dataset.close));
       }));
-      $('figureDialog').addEventListener('cancel',event => {
-        event.preventDefault();
-        requestFigureClose();
-      });
-      $('unwantedDialog').addEventListener('cancel',event => {
-        event.preventDefault();
-        requestUnwantedClose();
-      });
+      $('figureDialog').addEventListener('cancel',event=>{event.preventDefault();requestFigureClose();});
     })();
   </script>
   <script>
