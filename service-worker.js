@@ -1,4 +1,4 @@
-const CACHE = 'model-list-static-v2-0-zero';
+const CACHE = 'model-list-static-v2-0-1-picker';
 const FILES = ['./', './index.html', './manifest.webmanifest', './icon-192-ppi.png', './icon-512-ppi.png', './ppi-hero.webp', './ppi-sponsor.webp'];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(FILES)).then(() => self.skipWaiting()));

@@ -128,6 +128,20 @@
     .control-label {display:block;font-size:13px;font-weight:700;margin-bottom:7px}
     .form-row {margin-bottom:15px}
     .number-grid {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+
+    /* v2.0.1: Inline 0–10 rating picker; avoids the Android full-screen native select. */
+    .rating-trigger {display:flex;justify-content:space-between;align-items:center;gap:9px;text-align:left;font-size:16px;font-weight:800;font-variant-numeric:tabular-nums;min-height:47px;cursor:pointer}
+    .rating-trigger:hover {border-color:var(--accent);background:#103147}
+    .rating-trigger .rating-chevron {font-size:17px;font-weight:600;color:var(--accent)}
+    .rating-menu {display:none;position:fixed;inset:auto;margin:0;width:226px;max-width:calc(100vw - 16px);padding:11px;background:#152e43;border:1px solid #73dfe8;border-radius:14px;box-shadow:0 16px 42px #000b;color:var(--text);z-index:9999}
+    .rating-menu:popover-open,.rating-menu.open {display:block}
+    .rating-menu-title {font-size:12px;color:#c2e9f0;font-weight:800;line-height:1.3;margin-bottom:9px;overflow-wrap:anywhere}
+    .rating-option-grid {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}
+    .rating-option {min-width:0;min-height:43px;display:grid;place-items:center;border:1px solid #436578;border-radius:9px;background:#0b2335;color:#e6f7ff;font-size:16px;font-weight:800;cursor:pointer;font-variant-numeric:tabular-nums}
+    .rating-option:hover,.rating-option:focus-visible {background:#235266;border-color:#7be7ed;outline-offset:1px}
+    .rating-option[aria-pressed="true"] {background:#2c7580;color:#fff;border-color:#9bfff2;box-shadow:inset 0 0 0 1px #9bfff2}
+    .rating-option:focus-visible {outline:2px solid #b3fdff}
+
     .modal-footer {display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:24px}
     .modal-footer .right {display:flex;gap:9px;margin-left:auto}
     .hint {font-size:12px;color:var(--muted);margin-bottom:15px}
@@ -303,7 +317,7 @@
       </section>
       <div class="home-draw-result"><span id="randomResult" role="status" aria-live="polite">Draw a Main figure or search your collection.</span><button id="viewDrawnButton" class="btn tiny hidden" type="button">View in Main</button></div>
       <section id="searchResultsSection" class="hidden" aria-label="Search results from all lists"><div class="results-heading"><strong id="searchResultsCount">0 results</strong><span>Tap a name to edit or move it</span></div><div id="searchTable" class="panel table-holder" tabindex="0" role="region" aria-label="Search results across all categories"></div><p class="hint hidden" id="noSearchResults">No matching figures across your three lists.</p></section>
-      <p class="footnote">Model List v2.0 · Zero-default ratings · All data remains on this device. Export a JSON backup regularly.</p>
+      <p class="footnote">Model List v2.0.1 · Compact rating picker · All data remains on this device. Export a JSON backup regularly.</p>
     </section>
     <section id="listScreen" class="hidden" aria-label="Figure list">
       <div class="list-screen-header"><div><h2 id="listScreenTitle">Main list</h2><p id="listScreenHint" class="hint">Tap any figure to edit or move it to a different list.</p></div><button type="button" id="backHomeButton" class="btn tiny">⌂ Home</button></div>
@@ -314,7 +328,7 @@
 
   <dialog id="figureDialog" aria-labelledby="figureDialogTitle">
     <form id="figureForm" class="modal-body" novalidate>
-      <div class="modal-head"><div><h2 id="figureDialogTitle">Add a figure</h2><p>Every rating starts at 0. Choose a score from 0–10 for any field you want to change.</p></div><button class="close" type="button" data-close="figureDialog" aria-label="Close">×</button></div>
+      <div class="modal-head"><div><h2 id="figureDialogTitle">Add a figure</h2><p>Every rating starts at 0. Tap any number to choose 0–10 without leaving this screen.</p></div><button class="close" type="button" data-close="figureDialog" aria-label="Close">×</button></div>
       <div class="form-row"><label class="control-label" for="figureName">Model figure name *</label><input class="field" id="figureName" maxlength="200" required placeholder="e.g. Model Figure A" autocomplete="off"></div>
       <div class="warning form-alert hidden" id="duplicateValidation" role="alert"></div>
       <div class="form-row"><label class="control-label" for="figureCategory">Send to / Move to</label><select id="figureCategory" aria-describedby="categoryHint"><option value="main">Main list</option><option value="unticked">Unticked list</option><option value="unwanted">Don't Want</option></select><p id="categoryHint" class="hint">Moving a figure preserves its ID and saved information.</p></div>
@@ -323,6 +337,7 @@
       <div class="warning form-alert hidden" id="figureValidation" role="alert"></div>
       <div class="modal-footer"><button class="btn danger hidden" id="deleteButton" type="button">Delete</button><div class="right"><button class="btn" type="button" data-close="figureDialog">Cancel</button><button class="btn primary" type="submit" id="saveFigureButton">Save figure</button></div></div>
     </form>
+    <div id="ratingMenu" class="rating-menu" popover="manual" role="group" aria-label="Choose a rating from 0 to 10"></div>
   </dialog>
 
   <dialog id="settingsDialog" aria-labelledby="settingsTitle">
@@ -505,8 +520,8 @@
         // Clear invalid state as soon as each field is corrected.
         for (let i=0;i<5;i++) {
           if (validFigureNumber(values[i])) {
-            $('value'+i).classList.remove('field-error');
-            $('value'+i).removeAttribute('aria-invalid');
+            $('ratingButton'+i).classList.remove('field-error');
+            $('ratingButton'+i).removeAttribute('aria-invalid');
           }
         }
         if (count===5) $('figureValidation').classList.add('hidden');
@@ -514,13 +529,14 @@
       function showNumberAlert(values) {
         const invalid=values.map((value,i) => validFigureNumber(value) ? -1 : i).filter(i => i!==-1);
         if (!invalid.length) return false;
-        invalid.forEach(i => { $('value'+i).classList.add('field-error');$('value'+i).setAttribute('aria-invalid','true'); });
+        invalid.forEach(i => { $('ratingButton'+i).classList.add('field-error');$('ratingButton'+i).setAttribute('aria-invalid','true'); });
         $('figureValidation').textContent='🚨 ANTI-ANDY ALERT! '+invalid.length+' '+(invalid.length===1?'rating is':'ratings are')+' outside 0–10. Please select a valid value before saving.';
         $('figureValidation').classList.remove('hidden');
-        $('value'+invalid[0]).focus();
+        $('ratingButton'+invalid[0]).focus();
         return true;
       }
       function requestFigureClose() {
+        if(activeRatingPicker){closeRatingMenu(true);return;}
         if (currentFigureSnapshot() !== figureSnapshot && !confirm('Discard these unsaved changes?')) return;
         closeDialog($('figureDialog'));
       }
@@ -648,6 +664,7 @@
       function showDialog(dialog) { if (!dialog.open) dialog.showModal(); }
       function closeDialog(dialog) { if (dialog.open) dialog.close(); }
       function updateFigureCategory(){
+        if(activeRatingPicker)closeRatingMenu();
         const c=$('figureCategory').value;
         $('numberEntrySection').classList.toggle('hidden',c==='unwanted');
         $('drawSettingRow').classList.toggle('hidden',c!=='main');
@@ -655,7 +672,89 @@
         $('figureValidation').classList.add('hidden');
         if(c!=='unwanted')updateEntryProgress();
       }
+      let activeRatingPicker=null;
+      const ratingMenu=$('ratingMenu');
+      function ratingMenuIsOpen(){return ratingMenu.matches(':popover-open') || ratingMenu.classList.contains('open');}
+      function closeRatingMenu(refocus=false){
+        const active=activeRatingPicker;
+        if(ratingMenu.matches(':popover-open'))ratingMenu.hidePopover();
+        ratingMenu.classList.remove('open');
+        if(active?.trigger){
+          active.trigger.setAttribute('aria-expanded','false');
+          if(refocus)active.trigger.focus();
+        }
+        activeRatingPicker=null;
+      }
+      function positionRatingMenu(trigger){
+        const rect=trigger.getBoundingClientRect();
+        const menuRect=ratingMenu.getBoundingClientRect();
+        const viewport=window.visualViewport;
+        const minY=viewport?.offsetTop || 0;
+        const height=viewport?.height || window.innerHeight;
+        const maxY=minY+height;
+        const width=menuRect.width || 226;
+        const menuHeight=menuRect.height || 200;
+        const left=Math.min(Math.max(8,rect.left),Math.max(8,window.innerWidth-width-8));
+        let top=rect.bottom+6;
+        if(top+menuHeight>maxY-8 && rect.top-menuHeight-6>=minY+8) top=rect.top-menuHeight-6;
+        top=Math.max(minY+8,Math.min(top,maxY-menuHeight-8));
+        ratingMenu.style.left=left+'px';
+        ratingMenu.style.top=top+'px';
+      }
+      function openRatingMenu(index,trigger){
+        if(activeRatingPicker?.index===index && ratingMenuIsOpen()){closeRatingMenu(true);return;}
+        closeRatingMenu();
+        const field=$('value'+index);
+        if(!field)return;
+        const label=data.columns[index];
+        activeRatingPicker={index,trigger};
+        ratingMenu.replaceChildren();
+        ratingMenu.setAttribute('aria-label','Choose '+label+' rating from 0 to 10');
+        const heading=el('div','rating-menu-title','Choose '+label+' · 0–10');
+        const grid=el('div','rating-option-grid');
+        let selectedButton=null;
+        for(let n=0;n<=10;n++){
+          const option=el('button','rating-option',String(n));
+          option.type='button';
+          option.setAttribute('aria-label',label+': '+n);
+          const selected=field.value===String(n);
+          option.setAttribute('aria-pressed',String(selected));
+          if(selected)selectedButton=option;
+          option.addEventListener('click',()=>{
+            field.value=String(n);
+            $('ratingValue'+index).textContent=String(n);
+            trigger.setAttribute('aria-label',label+': '+n+'. Choose rating');
+            updateEntryProgress();
+            closeRatingMenu(true);
+          });
+          grid.append(option);
+        }
+        ratingMenu.append(heading,grid);
+        if(typeof ratingMenu.showPopover==='function')ratingMenu.showPopover();
+        else ratingMenu.classList.add('open');
+        trigger.setAttribute('aria-expanded','true');
+        positionRatingMenu(trigger);
+        (selectedButton||grid.firstElementChild)?.focus();
+      }
+      // Outside tap and Escape dismiss only the little picker, not the whole editor.
+      document.addEventListener('pointerdown',event=>{
+        if(activeRatingPicker && !ratingMenu.contains(event.target) && !activeRatingPicker.trigger.contains(event.target))closeRatingMenu();
+      },true);
+      ratingMenu.addEventListener('keydown',event=>{
+        if(event.key==='Escape'){
+          event.preventDefault();event.stopPropagation();closeRatingMenu(true);
+        } else if(['ArrowRight','ArrowLeft','ArrowDown','ArrowUp'].includes(event.key)){
+          event.preventDefault();
+          const items=Array.from(ratingMenu.querySelectorAll('.rating-option'));
+          const current=items.indexOf(document.activeElement);
+          const shift=event.key==='ArrowRight'?1:event.key==='ArrowLeft'?-1:event.key==='ArrowDown'?4:-4;
+          const next=Math.max(0,Math.min(items.length-1,current+shift));
+          items[next]?.focus();
+        }
+      });
+      $('figureDialog').addEventListener('scroll',()=>{if(activeRatingPicker)positionRatingMenu(activeRatingPicker.trigger);});
       function openFigure(id=null){
+        closeRatingMenu();
         editingId=id;
         const figure=id ? allRecords().find(f=>f.id===id) : null;
         const category=figure ? (data.unwanted.some(f=>f.id===id)?'unwanted':figure.done?'main':'unticked') : $('newDestination').value;
@@ -670,20 +769,22 @@
         const container=$('numberFields');container.replaceChildren();
         for(let i=0;i<5;i++){
           const wrap=el('div','form-row'),label=el('label','control-label',data.columns[i]);
-          label.htmlFor='value'+i;
-          const input=el('select','field');input.id='value'+i;
+          label.htmlFor='ratingButton'+i;
           const previous=figure&&Array.isArray(figure.values)?String(figure.values[i]??'').trim():'0';
           const currentValue=previous || '0';
-          for(let v=0;v<=10;v++) {
-            const option=el('option',null,String(v));option.value=String(v);input.append(option);
-          }
-          // Older backups may contain unusual values: show them clearly instead of silently erasing them.
-          if (!validFigureNumber(currentValue)) {
-            const legacy=el('option',null,currentValue+' (old value — select 0–10)');
-            legacy.value=currentValue;input.prepend(legacy);
-          }
-          input.value=currentValue;
-          input.addEventListener('change',updateEntryProgress);wrap.append(label,input);container.append(wrap);
+          // A hidden value keeps the same save/backup/validation path as the previous select.
+          const input=el('input');input.type='hidden';input.id='value'+i;input.value=currentValue;
+          const trigger=el('button','field rating-trigger');
+          trigger.type='button';trigger.id='ratingButton'+i;
+          trigger.setAttribute('aria-label',data.columns[i]+': '+currentValue+'. Choose rating');
+          trigger.setAttribute('aria-expanded','false');
+          trigger.setAttribute('aria-controls','ratingMenu');
+          const number=el('span','rating-current',currentValue);
+          number.id='ratingValue'+i;
+          const chevron=el('span','rating-chevron','▾');chevron.setAttribute('aria-hidden','true');
+          trigger.append(number,chevron);
+          trigger.addEventListener('click',()=>openRatingMenu(i,trigger));
+          wrap.append(label,input,trigger);container.append(wrap);
         }
         $('figureValidation').classList.add('hidden');
         updateFigureCategory();
