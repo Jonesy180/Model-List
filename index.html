@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#0a1626">
-  <meta name="description" content="Model figures organised across Main, Unticked, and Don’t Want lists, with automatic totals and duplicate prevention.">
+  <meta name="description" content="Model figures organised across Main, Unticked, Don’t Want, and Look In To lists, with automatic totals and duplicate prevention.">
   <title>Model List</title>
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" type="image/png" sizes="192x192" href="./icon-192-ppi.png">
@@ -171,6 +171,7 @@
     .list-location.main {color:#98edcb;background:#143a33;border-color:#31594f}
     .list-location.unticked {color:#9ee9f6;background:#183c4f;border-color:#315c70}
     .list-location.unwanted {color:#ffc8ae;background:#3d2b29;border-color:#684b43}
+    .list-location.lookInto {color:#d4c3ff;background:#332d51;border-color:#65558c}
     .no-value {color:#6e8799}
 
     .hidden {display:none!important}
@@ -217,7 +218,7 @@
       .check {width:22px;height:22px;border-radius:6px}
       .figure-name-button {font-size:12.5px}
     }
-    @media (max-width:375px) { .number-grid {gap:9px} th,td {font-size:11.5px} }
+    @media (max-width:375px) { .number-grid {gap:9px} th,td {font-size:11.5px} .list-nav {gap:5px} .list-tile.nav-secondary {padding:8px 4px} .list-tile.nav-secondary .tile-title {font-size:11px} }
     @media (prefers-reduced-motion:reduce) { * {scroll-behavior:auto!important;transition:none!important} }
 
     /* v1.9.1 artwork: decorative assets only, no changes to stored figures or draw logic. */
@@ -246,11 +247,16 @@
       .sponsor-picture {min-height:178px;max-height:240px}
     }
 
-    /* v2.0: Home control centre; three deliberately uncluttered category screens. */
-    .list-nav {grid-template-columns:repeat(4,minmax(0,1fr));margin:0 0 17px}
-    .list-tile {min-height:60px;justify-content:center}
-    .list-tile .tile-title {font-size:14px}
-    .list-tile .tile-count {font-size:18px}
+    /* v2.0.2: Home + Main take the entire first row; three smaller categories below. */
+    .list-nav {grid-template-columns:repeat(6,minmax(0,1fr));margin:0 0 17px;gap:10px}
+    .list-tile {min-height:67px;justify-content:center}
+    .list-tile.nav-primary {grid-column:span 3;min-height:81px;background:linear-gradient(180deg,#1b3a4c,#113146)}
+    .list-tile.nav-secondary {grid-column:span 2}
+    .list-tile.nav-primary .tile-title {font-size:17px}
+    .list-tile.nav-primary .tile-count {font-size:24px}
+    .list-tile.nav-secondary .tile-title {font-size:13px}
+    .list-tile.nav-secondary .tile-count {font-size:19px}
+    .list-tile .tile-count {margin-left:auto}
     .home-entry {padding:16px 17px;margin-bottom:17px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
     .home-entry h2 {font-size:18px;margin:0 0 3px}
     .home-entry .hint {margin:0;max-width:430px}
@@ -266,11 +272,15 @@
     .form-row select {margin-top:5px}
     .footnote {margin-top:10px}
     @media(max-width:720px) {
-      .list-nav {gap:6px}
-      .list-tile {padding:8px 5px;min-height:65px;align-items:center;text-align:center;justify-content:center;gap:4px}
+      .list-nav {gap:7px}
+      .list-tile {padding:10px 8px;min-height:72px;align-items:center;text-align:center;justify-content:center;gap:5px}
+      .list-tile.nav-primary {min-height:82px}
       .list-tile .tile-copy {flex:unset}
-      .list-tile .tile-title {font-size:11px}
-      .list-tile .tile-count {font-size:17px}
+      .list-tile.nav-primary .tile-title {font-size:17px}
+      .list-tile.nav-primary .tile-count {font-size:24px}
+      .list-tile.nav-secondary .tile-title {font-size:12px;overflow-wrap:anywhere}
+      .list-tile.nav-secondary .tile-count {font-size:20px}
+      .list-tile .tile-count {margin-left:0}
       .home-entry {gap:11px;padding:13px 12px}
       .home-add-controls {width:100%;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}
       .home-add-controls label,.home-add-controls select,.home-add-controls .btn {width:100%;min-width:0}
@@ -281,10 +291,11 @@
 <body>
   <div class="shell">
     <nav class="list-nav" aria-label="Choose screen">
-      <button class="list-tile active" type="button" id="homeButton" aria-current="page"><span class="tile-icon">⌂</span><span class="tile-copy"><span class="tile-title">Home</span><span class="tile-note">Control centre</span></span></button>
-      <button class="list-tile" type="button" id="mainListButton"><span class="tile-icon">★</span><span class="tile-copy"><span class="tile-title">Main</span></span><span class="tile-count" id="mainListCount">0</span></button>
-      <button class="list-tile" type="button" id="untickedListButton"><span class="tile-icon">○</span><span class="tile-copy"><span class="tile-title">Unticked</span></span><span class="tile-count" id="untickedListCount">0</span></button>
-      <button class="list-tile" type="button" id="unwantedListButton"><span class="tile-icon">✕</span><span class="tile-copy"><span class="tile-title">Don't Want</span></span><span class="tile-count" id="unwantedListCount">0</span></button>
+      <button class="list-tile nav-primary active" type="button" id="homeButton" aria-current="page"><span class="tile-icon">⌂</span><span class="tile-copy"><span class="tile-title">Home</span><span class="tile-note">Control centre</span></span></button>
+      <button class="list-tile nav-primary" type="button" id="mainListButton"><span class="tile-icon">★</span><span class="tile-copy"><span class="tile-title">Main</span></span><span class="tile-count" id="mainListCount">0</span></button>
+      <button class="list-tile nav-secondary" type="button" id="untickedListButton"><span class="tile-icon">○</span><span class="tile-copy"><span class="tile-title">Unticked</span></span><span class="tile-count" id="untickedListCount">0</span></button>
+      <button class="list-tile nav-secondary" type="button" id="unwantedListButton"><span class="tile-icon">✕</span><span class="tile-copy"><span class="tile-title">Don't Want</span></span><span class="tile-count" id="unwantedListCount">0</span></button>
+      <button class="list-tile nav-secondary" type="button" id="lookIntoListButton"><span class="tile-icon">⌕</span><span class="tile-copy"><span class="tile-title">Look In To</span></span><span class="tile-count" id="lookIntoListCount">0</span></button>
     </nav>
     <div id="storageWarning" class="warning hidden" role="alert">Storage is unavailable. Export a JSON backup before leaving this page.</div>
     <section id="homeScreen" aria-label="Home — add and organise figures">
@@ -292,18 +303,18 @@
       <header class="hero-action-row"><h1 class="sr-only">Model List</h1><div class="actions"><button class="btn" id="settingsButton" type="button">⚙ Settings &amp; backup</button></div></header>
       <section class="panel home-entry" aria-labelledby="addHeading">
         <div><h2 id="addHeading">Add a figure</h2><p class="hint">Choose its destination, then enter the details. Existing records stay in their current lists.</p></div>
-        <div class="home-add-controls"><label for="newDestination">Send to <select id="newDestination"><option value="main">Main list</option><option value="unticked" selected>Unticked list</option><option value="unwanted">Don't Want</option></select></label><button class="btn primary" id="addButton" type="button">＋ Add figure</button></div>
+        <div class="home-add-controls"><label for="newDestination">Send to <select id="newDestination"><option value="main">Main list</option><option value="unticked" selected>Unticked list</option><option value="unwanted">Don't Want</option><option value="lookInto">Look In To</option></select></label><button class="btn primary" id="addButton" type="button">＋ Add figure</button></div>
       </section>
       <section class="summary" id="summarySection" aria-label="Collection summary">
         <div class="panel stat"><div class="number" id="totalCount">0</div><div class="label">All figures</div></div>
         <div class="panel stat"><div class="number good" id="doneCount">0</div><div class="label">Main</div></div>
-        <div class="panel stat"><div class="number" id="leftCount">0</div><div class="label">Unticked / Don't Want</div></div>
+        <div class="panel stat"><div class="number" id="leftCount">0</div><div class="label">Other categories</div></div>
       </section>
       <div id="incompleteNotice" class="warning data-check hidden" role="status"><p id="incompleteMessage"></p><button type="button" id="reviewIncompleteButton" class="btn tiny">Fix next figure</button></div>
       <div id="duplicateNotice" class="warning data-check duplicate-check hidden" role="status"><p id="duplicateMessage"></p><button type="button" id="reviewDuplicateButton" class="btn tiny">Review duplicate</button></div>
       <section class="panel toolbar" aria-label="Search, sort and random draw">
         <div class="toolbar-primary">
-          <div class="search"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="10.8" cy="10.8" r="7.1"/><path d="m16 16 5 5"/></svg><label for="searchInput" class="sr-only">Search all three lists</label><input class="field" id="searchInput" type="search" placeholder="Search all 3 lists…" autocomplete="off"></div>
+          <div class="search"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="10.8" cy="10.8" r="7.1"/><path d="m16 16 5 5"/></svg><label for="searchInput" class="sr-only">Search all four lists</label><input class="field" id="searchInput" type="search" placeholder="Search all 4 lists…" autocomplete="off"></div>
           <div class="random-picker"><button class="btn" type="button" id="randomButton" aria-label="Draw one available Main List figure" disabled>🎲 No figures yet</button></div>
         </div>
         <div class="toolbar-right">
@@ -316,8 +327,8 @@
         <img class="sponsor-picture" src="./ppi-sponsor.webp" width="330" height="266" alt="Penguin Protection Industries mascot in safety equipment" loading="lazy">
       </section>
       <div class="home-draw-result"><span id="randomResult" role="status" aria-live="polite">Draw a Main figure or search your collection.</span><button id="viewDrawnButton" class="btn tiny hidden" type="button">View in Main</button></div>
-      <section id="searchResultsSection" class="hidden" aria-label="Search results from all lists"><div class="results-heading"><strong id="searchResultsCount">0 results</strong><span>Tap a name to edit or move it</span></div><div id="searchTable" class="panel table-holder" tabindex="0" role="region" aria-label="Search results across all categories"></div><p class="hint hidden" id="noSearchResults">No matching figures across your three lists.</p></section>
-      <p class="footnote">Model List v2.0.1 · Compact rating picker · All data remains on this device. Export a JSON backup regularly.</p>
+      <section id="searchResultsSection" class="hidden" aria-label="Search results from all lists"><div class="results-heading"><strong id="searchResultsCount">0 results</strong><span>Tap a name to edit or move it</span></div><div id="searchTable" class="panel table-holder" tabindex="0" role="region" aria-label="Search results across all categories"></div><p class="hint hidden" id="noSearchResults">No matching figures across your four categories.</p></section>
+      <p class="footnote">Model List v2.0.2 · Fourth category · Compact rating picker · All data remains on this device. Export a JSON backup regularly.</p>
     </section>
     <section id="listScreen" class="hidden" aria-label="Figure list">
       <div class="list-screen-header"><div><h2 id="listScreenTitle">Main list</h2><p id="listScreenHint" class="hint">Tap any figure to edit or move it to a different list.</p></div><button type="button" id="backHomeButton" class="btn tiny">⌂ Home</button></div>
@@ -331,7 +342,7 @@
       <div class="modal-head"><div><h2 id="figureDialogTitle">Add a figure</h2><p>Every rating starts at 0. Tap any number to choose 0–10 without leaving this screen.</p></div><button class="close" type="button" data-close="figureDialog" aria-label="Close">×</button></div>
       <div class="form-row"><label class="control-label" for="figureName">Model figure name *</label><input class="field" id="figureName" maxlength="200" required placeholder="e.g. Model Figure A" autocomplete="off"></div>
       <div class="warning form-alert hidden" id="duplicateValidation" role="alert"></div>
-      <div class="form-row"><label class="control-label" for="figureCategory">Send to / Move to</label><select id="figureCategory" aria-describedby="categoryHint"><option value="main">Main list</option><option value="unticked">Unticked list</option><option value="unwanted">Don't Want</option></select><p id="categoryHint" class="hint">Moving a figure preserves its ID and saved information.</p></div>
+      <div class="form-row"><label class="control-label" for="figureCategory">Send to / Move to</label><select id="figureCategory" aria-describedby="categoryHint"><option value="main">Main list</option><option value="unticked">Unticked list</option><option value="unwanted">Don't Want</option><option value="lookInto">Look In To</option></select><p id="categoryHint" class="hint">Moving a figure preserves its ID and saved information.</p></div>
       <div id="numberEntrySection"><p class="entry-progress" id="figureProgress">All five ratings start at 0 · Choose 0–10</p><div class="number-grid" id="numberFields"></div></div>
       <div class="draw-switch-row hidden" id="drawSettingRow"><label class="draw-switch-label" for="includeInDraw"><span>🎲 Include in random draw</span><input class="switch-input" type="checkbox" id="includeInDraw" role="switch" aria-describedby="drawSettingHint"></label><p class="draw-switch-hint" id="drawSettingHint">ON — available for the next draw.</p></div>
       <div class="warning form-alert hidden" id="figureValidation" role="alert"></div>
@@ -351,7 +362,7 @@
       </form>
       <div class="divider"></div>
       <label class="control-label">Backup &amp; export</label>
-      <p class="hint">JSON includes all three categories, hidden saved numbers and draw eligibility. CSV shows each figure’s category. Restoring JSON replaces all current data after confirmation. Older backups remain compatible.</p>
+      <p class="hint">JSON includes all four categories, hidden saved numbers and draw eligibility. CSV shows each figure’s category. Restoring JSON replaces all current data after confirmation. Older backups remain compatible.</p>
       <div class="settings-actions">
         <button class="btn" id="exportJson" type="button">↓ Backup JSON</button>
         <button class="btn" id="exportCsv" type="button">↓ Export CSV</button>
@@ -369,7 +380,7 @@
       'use strict';
       const STORAGE_KEY = 'model-list-v1';
       const defaultColumns = ['Number 1','Number 2','Number 3','Number 4','Number 5'];
-      let data = {version:5,columns:[...defaultColumns],figures:[],unwanted:[]};
+      let data = {version:6,columns:[...defaultColumns],figures:[],unwanted:[],lookInto:[]};
       let editingId = null;
       let unwantedEditingId = null;
       let figureSnapshot = '';
@@ -391,7 +402,7 @@
             const previous=JSON.parse(raw);
             data=validateData(previous);
             // Persist automatic blank-to-zero migration once, without changing saved 1–10 ratings.
-            if (previous.version !== 5) save();
+            if (previous.version !== 6) save();
           }
         } catch (error) {
           $('storageWarning').classList.remove('hidden');
@@ -433,7 +444,20 @@
                   createdAt:Number.isFinite(f.createdAt) ? f.createdAt : Date.now()+i,
                   updatedAt:Number.isFinite(f.updatedAt) ? f.updatedAt : Date.now()};
         });
-        return {version:5,columns,figures,unwanted};
+        // Older backups have no Look In To category: migrating them must leave all existing categories untouched.
+        if (obj.lookInto !== undefined && !Array.isArray(obj.lookInto)) throw Error('Invalid Look In To list');
+        if ((obj.lookInto || []).length > 200000) throw Error('Look In To list has too many entries');
+        const lookInto = (obj.lookInto || []).map((f,i) => {
+          if (!f || typeof f.name !== 'string' || !f.name.trim()) throw Error('Invalid Look In To name at row '+(i+1));
+          let id=typeof f.id === 'string' && f.id.length < 100 ? f.id : makeId();
+          if (ids.has(id)) id=makeId(); ids.add(id);
+          const storedValues=Array.isArray(f.values) && f.values.length===5 ? f.values.map(v=>String(v ?? '').trim() || '0') : Array(5).fill('0');
+          if(storedValues.some(v=> !/^\d*$/.test(v) || v.length>30)) throw Error('Invalid hidden numbers in Look In To row '+(i+1));
+          return {id,name:f.name.trim().slice(0,200),values:storedValues,inDraw:f.inDraw!==false,
+            createdAt:Number.isFinite(f.createdAt)?f.createdAt:Date.now()+i,
+            updatedAt:Number.isFinite(f.updatedAt)?f.updatedAt:Date.now()};
+        });
+        return {version:6,columns,figures,unwanted,lookInto};
       }
       function toast(message) {
         clearTimeout(toastTimer);
@@ -445,11 +469,11 @@
       function getVisibleFigures() {
         const search = $('searchInput').value.trim().toLocaleLowerCase();
         const sort = $('sortSelect').value;
-        // While searching, look through ALL three lists, regardless of which tile is open.
+        // While searching, look through ALL four lists, regardless of which tile is open.
         // Clearing the search restores the selected list without moving or duplicating data.
         const result = search
           ? allRecords().filter(f => f.name.toLocaleLowerCase().includes(search) || (Array.isArray(f.values) && f.values.some(v => v.toLocaleLowerCase().includes(search))))
-          : activeList === 'unwanted' ? [...data.unwanted] : data.figures.filter(f => f.done === (activeList !== 'unticked'));
+          : activeList === 'unwanted' ? [...data.unwanted] : activeList === 'lookInto' ? [...data.lookInto] : data.figures.filter(f => f.done === (activeList !== 'unticked'));
         const compareNames = (a,b) => a.name.localeCompare(b.name,undefined,{numeric:true,sensitivity:'base'}) || a.createdAt-b.createdAt;
         result.sort((a,b) => {
           if (sort === 'za') return -compareNames(a,b);
@@ -467,8 +491,8 @@
       }
       const normaliseName = name => String(name ?? '').normalize('NFKC').trim().replace(/\s+/g,' ').toLocaleLowerCase();
       const validFigureNumber = value => /^(?:0|[1-9]|10)$/.test(String(value ?? '').trim());
-      const allRecords=()=>[...data.figures,...data.unwanted];
-      const recordList=figure=>data.unwanted.some(f=>f.id===figure.id) ? "Don't Want" : (figure.done ? 'Main' : 'Unticked');
+      const allRecords=()=>[...data.figures,...data.unwanted,...data.lookInto];
+      const recordList=figure=>data.unwanted.some(f=>f.id===figure.id) ? "Don't Want" : data.lookInto.some(f=>f.id===figure.id) ? 'Look In To' : (figure.done ? 'Main' : 'Unticked');
       function duplicateFor(name,ignoreId=null) {
         const key=normaliseName(name);
         return key ? allRecords().find(f => f.id !== ignoreId && normaliseName(f.name) === key) : null;
@@ -546,15 +570,16 @@
       }
       function renderTable(figures,holderId='figureTable') {
         const globalSearch=holderId==='searchTable';
-        const isUnwanted=!globalSearch && activeList==='unwanted';
-        const unwantedIds=new Set(data.unwanted.map(f=>f.id));
+        const isSimpleList=!globalSearch && (activeList==='unwanted' || activeList==='lookInto');
+        const unwantedIds=new Set([...data.unwanted,...data.lookInto].map(f=>f.id));
+        const lookIntoIds=new Set(data.lookInto.map(f=>f.id));
         const duplicates=duplicateIds();
         const holder=$(holderId);holder.replaceChildren();
-        const table=el('table',globalSearch?'global-search-list':isUnwanted?'simple-list':'');
+        const table=el('table',globalSearch?'global-search-list':isSimpleList?'simple-list':'');
         const head=el('thead'),hr=el('tr');
         const rowHead=el('th','row-index','#');rowHead.scope='col';hr.append(rowHead);
         const nameHead=el('th','','Model figure');nameHead.scope='col';hr.append(nameHead);
-        if (!isUnwanted) { const totalHead=el('th','total','Total');totalHead.scope='col';hr.append(totalHead); }
+        if (!isSimpleList) { const totalHead=el('th','total','Total');totalHead.scope='col';hr.append(totalHead); }
         head.append(hr);table.append(head);
         const body=el('tbody');
         for(const [i,figure] of figures.entries()) {
@@ -568,9 +593,9 @@
           button.setAttribute('aria-label','Edit or move '+figure.name+' in '+recordList(figure));
           button.addEventListener('click',()=>openFigure(figure.id));
           nameCell.append(button);
-          if(globalSearch) nameCell.append(el('span','list-location '+(entryIsUnwanted?'unwanted':figure.done?'main':'unticked'),recordList(figure)));
+          if(globalSearch) nameCell.append(el('span','list-location '+(lookIntoIds.has(figure.id)?'lookInto':entryIsUnwanted?'unwanted':figure.done?'main':'unticked'),recordList(figure)));
           tr.append(nameCell);
-          if(!isUnwanted) {
+          if(!isSimpleList) {
             const totalCell=el('td','total');
             if (entryIsUnwanted) totalCell.append(el('span','no-value','—'));
             else {const partial=needsNumberCheck(figure);totalCell.append(el('span','number-text'+(partial?' partial':''),String(figureTotal(figure))));if(partial)totalCell.append(el('span','partial-mark','*'));}
@@ -584,19 +609,20 @@
         const home=activeList==='home';
         const globalSearch=home && isGlobalSearch();
         const total=data.figures.length,done=data.figures.filter(f=>f.done).length;
-        const allCount=total+data.unwanted.length;
+        const allCount=total+data.unwanted.length+data.lookInto.length;
         $('mainListCount').textContent=done.toLocaleString();
         $('untickedListCount').textContent=(total-done).toLocaleString();
         $('unwantedListCount').textContent=data.unwanted.length.toLocaleString();
+        $('lookIntoListCount').textContent=data.lookInto.length.toLocaleString();
         $('homeScreen').classList.toggle('hidden',!home);
         $('listScreen').classList.toggle('hidden',home);
-        for(const [list,id] of [['home','homeButton'],['main','mainListButton'],['unticked','untickedListButton'],['unwanted','unwantedListButton']]) {
+        for(const [list,id] of [['home','homeButton'],['main','mainListButton'],['unticked','untickedListButton'],['unwanted','unwantedListButton'],['lookInto','lookIntoListButton']]) {
           const b=$(id);b.classList.toggle('active',activeList===list);
           if(activeList===list)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');
         }
         const dup=duplicateIds();
         $('duplicateNotice').classList.toggle('hidden',dup.size===0);
-        $('duplicateMessage').textContent=dup.size ? '⚑ '+dup.size+' records have matching names across the three lists. Existing data is safe; review when convenient.' : '';
+        $('duplicateMessage').textContent=dup.size ? '⚑ '+dup.size+' records have matching names across the four categories. Existing data is safe; review when convenient.' : '';
         const incomplete=data.figures.filter(needsNumberCheck).length;
         $('incompleteNotice').classList.toggle('hidden',incomplete===0);
         $('incompleteMessage').textContent=incomplete ? '🚨 Anti-Andy check: '+incomplete+' older '+(incomplete===1?'figure has':'figures have')+' an out-of-range rating. Review and select 0–10.' : '';
@@ -623,9 +649,9 @@
         if(globalSearch){const matches=getVisibleFigures();$('searchResultsCount').textContent=matches.length+' matching '+(matches.length===1?'figure':'figures');$('searchTable').classList.toggle('hidden',matches.length===0);$('noSearchResults').classList.toggle('hidden',matches.length>0);renderTable(matches,'searchTable');}
         if(home)return;
         const figures=getVisibleFigures();
-        const titles={main:'Main list',unticked:'Unticked list',unwanted:"Don't Want"};
+        const titles={main:'Main list',unticked:'Unticked list',unwanted:"Don't Want",lookInto:'Look In To'};
         $('listScreenTitle').textContent=titles[activeList];
-        $('listScreenHint').textContent=activeList==='main'?'Tap a figure to edit, move, or change Include in Draw. Orange names are excluded.':activeList==='unticked'?'Tap a figure to edit its numbers or move it to Main or Don’t Want.':'Tap a name to edit or move it. No numbers displayed here.';
+        $('listScreenHint').textContent=activeList==='main'?'Tap a figure to edit, move, or change Include in Draw. Orange names are excluded.':activeList==='unticked'?'Tap a figure to edit its numbers or move it to another category.':'Tap a name to edit or move it. No numbers displayed here.';
         $('resultsCount').textContent=figures.length+' '+(figures.length===1?'figure':'figures');
         $('emptyState').classList.toggle('hidden',figures.length>0);
         $('figureTable').classList.toggle('hidden',figures.length===0);
@@ -647,7 +673,7 @@
       }
       function handleViewChange(){render();}
       function switchList(list,keepPicked=false){
-        if(!['home','main','unticked','unwanted'].includes(list))return;
+        if(!['home','main','unticked','unwanted','lookInto'].includes(list))return;
         activeList=list;if(!keepPicked)pickedId=null;
         if(list!=='home')$('searchInput').value='';
         render();$('figureTable').scrollTop=0;
@@ -657,7 +683,6 @@
         const duplicates=duplicateIds();
         const figure=allRecords().find(f => duplicates.has(f.id));
         if (figure) {
-          const isUnwanted=data.unwanted.some(f=>f.id===figure.id);
           openFigure(figure.id);
         }
       }
@@ -666,11 +691,11 @@
       function updateFigureCategory(){
         if(activeRatingPicker)closeRatingMenu();
         const c=$('figureCategory').value;
-        $('numberEntrySection').classList.toggle('hidden',c==='unwanted');
+        $('numberEntrySection').classList.toggle('hidden',c==='unwanted'||c==='lookInto');
         $('drawSettingRow').classList.toggle('hidden',c!=='main');
-        $('categoryHint').textContent=c==='unwanted'?'Name only on the Don’t Want screen. Its five ratings default to 0, and any previously entered scores are preserved.':c==='main'?'Five ratings default to 0. This figure can take part in random Main draws.':'Five ratings default to 0. No random draw on Unticked.';
+        $('categoryHint').textContent=(c==='unwanted'||c==='lookInto')?'Name-only on this screen. Ratings default to 0; any previously entered numbers and draw history are preserved.':c==='main'?'Five ratings default to 0. This figure can take part in random Main draws.':'Five ratings default to 0. No random draw on Unticked.';
         $('figureValidation').classList.add('hidden');
-        if(c!=='unwanted')updateEntryProgress();
+        if(c!=='unwanted'&&c!=='lookInto')updateEntryProgress();
       }
       let activeRatingPicker=null;
       const ratingMenu=$('ratingMenu');
@@ -757,7 +782,7 @@
         closeRatingMenu();
         editingId=id;
         const figure=id ? allRecords().find(f=>f.id===id) : null;
-        const category=figure ? (data.unwanted.some(f=>f.id===id)?'unwanted':figure.done?'main':'unticked') : $('newDestination').value;
+        const category=figure ? (data.unwanted.some(f=>f.id===id)?'unwanted':data.lookInto.some(f=>f.id===id)?'lookInto':figure.done?'main':'unticked') : $('newDestination').value;
         $('figureDialogTitle').textContent=figure?'Edit / move figure':'Add a figure';
         $('saveFigureButton').textContent=figure?'Save changes':'Add figure';
         $('deleteButton').classList.toggle('hidden',!figure);
@@ -797,23 +822,28 @@
         if(!name){$('figureName').focus();toast('Give your figure a name.');return;}
         const category=$('figureCategory').value;
         const values=Array.from({length:5},(_,i)=>$('value'+i).value.trim());
-        if(category!=='unwanted'&&showNumberAlert(values))return;
+        if(category!=='unwanted'&&category!=='lookInto'&&showNumberAlert(values))return;
         const current=editingId?allRecords().find(f=>f.id===editingId):null;
         const sameName=current&&normaliseName(current.name)===normaliseName(name);
         const duplicate=sameName?null:duplicateFor(name,editingId);
         if(duplicate){showDuplicateAlert(duplicate);$('figureName').focus();return;}
         const previousValues=current&&Array.isArray(current.values)?[...current.values]:Array(5).fill('0');
         const oldDraw=current?current.inDraw!==false:true;
-        const record={id:current?current.id:makeId(),name,values:category==='unwanted'?(values.every(validFigureNumber)?values:previousValues):values,
+        const record={id:current?current.id:makeId(),name,values:(category==='unwanted'||category==='lookInto')?(values.every(validFigureNumber)?values:previousValues):values,
           inDraw:category==='main'?$('includeInDraw').checked:oldDraw,
           createdAt:current?current.createdAt:Date.now(),updatedAt:Date.now()};
         // Same immutable ID; update the category without duplicating or deleting any figure.
-        if(current){data.figures=data.figures.filter(f=>f.id!==record.id);data.unwanted=data.unwanted.filter(f=>f.id!==record.id);}
+        if(current){
+          data.figures=data.figures.filter(f=>f.id!==record.id);
+          data.unwanted=data.unwanted.filter(f=>f.id!==record.id);
+          data.lookInto=data.lookInto.filter(f=>f.id!==record.id);
+        }
         if(category==='unwanted')data.unwanted.push(record);
+        else if(category==='lookInto')data.lookInto.push(record);
         else data.figures.push({...record,done:category==='main'});
         pickedId=null;
         save();closeDialog($('figureDialog'));render();
-        toast((current?'Saved and moved to ':'Added to ')+ (category==='main'?'Main':category==='unticked'?'Unticked':"Don't Want"));
+        toast((current?'Saved and moved to ':'Added to ')+ (category==='main'?'Main':category==='unticked'?'Unticked':category==='lookInto'?'Look In To':"Don't Want"));
       }
       function reviewNextIncomplete() {
         const item=data.figures.find(needsNumberCheck);
@@ -822,7 +852,7 @@
       function deleteFigure() {
         const figure=allRecords().find(f=>f.id===editingId);
         if (!figure || !confirm('Delete "'+figure.name+'"? This cannot be undone unless you have a backup.')) return;
-        data.figures=data.figures.filter(f=>f.id!==editingId);data.unwanted=data.unwanted.filter(f=>f.id!==editingId);
+        data.figures=data.figures.filter(f=>f.id!==editingId);data.unwanted=data.unwanted.filter(f=>f.id!==editingId);data.lookInto=data.lookInto.filter(f=>f.id!==editingId);
         pickedId=null;save();render();closeDialog($('figureDialog'));toast('Figure deleted');
       }
       function addInCurrentList(){switchList('home');openFigure();}
@@ -857,8 +887,8 @@
         const rows=[['Row','Model Figure','List',...data.columns,'Draw Available']];
         const sorted=allRecords().sort((a,b) => a.name.localeCompare(b.name,undefined,{numeric:true,sensitivity:'base'}));
         for (const [i,f] of sorted.entries()) {
-          const isUnwanted=data.unwanted.some(u=>u.id===f.id);
-          rows.push([i+1,f.name,recordList(f),...(isUnwanted?Array(5).fill(''):f.values),isUnwanted?'':f.inDraw!==false?'Yes':'No']);
+          const isSimple=[...data.unwanted,...data.lookInto].some(u=>u.id===f.id);
+          rows.push([i+1,f.name,recordList(f),...(isSimple?Array(5).fill(''):f.values),isSimple?'':f.inDraw!==false?'Yes':'No']);
         }
         const csv='\ufeff'+rows.map(row=>row.map(escapeCSV).join(',')).join('\r\n');
         downloadFile('Model-List-'+fileDate()+'.csv',csv,'text/csv;charset=utf-8');
@@ -870,7 +900,7 @@
           if (file.size > 25*1024*1024) throw Error('File is too large.');
           const raw=await file.text();
           const imported=validateData(JSON.parse(raw));
-          if (!confirm('Restore '+imported.figures.length+' collection figures and '+imported.unwanted.length+' Don’t Want entries?\n\nThis REPLACES all three current lists and column names. Export a backup first if you want to keep them.')) return;
+          if (!confirm('Restore '+imported.figures.length+' Main/Unticked figures, '+imported.unwanted.length+' Don’t Want entries and '+imported.lookInto.length+' Look In To entries?\n\nThis REPLACES all four current categories and column names. Export a backup first if you want to keep them.')) return;
           data=imported;pickedId=null;activeList='home';$('searchInput').value='';save();render();closeDialog($('settingsDialog'));toast('Backup restored');
         } catch (error) { alert('Could not restore this backup: '+error.message); }
         finally { $('importFile').value=''; }
@@ -880,6 +910,7 @@
       $('mainListButton').addEventListener('click',()=>switchList('main'));
       $('untickedListButton').addEventListener('click',()=>switchList('unticked'));
       $('unwantedListButton').addEventListener('click',()=>switchList('unwanted'));
+      $('lookIntoListButton').addEventListener('click',()=>switchList('lookInto'));
       $('backHomeButton').addEventListener('click',()=>switchList('home'));
       $('reviewDuplicateButton').addEventListener('click',reviewNextDuplicate);
       $('figureName').addEventListener('input',checkNameWhileTyping);
