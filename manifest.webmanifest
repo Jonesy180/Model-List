@@ -2,7 +2,7 @@
   "id": "./",
   "name": "Model List",
   "short_name": "Model List",
-  "description": "Private figure database with Home, Main, Unticked, Don't Want, Look In To, no-repeat Main draws, saved ratings, search, and offline backups",
+  "description": "Private model figure database with Home, Main, Don’t Want and Look In To, optional user-named subcategories, CB/CH/O choices, no-repeat draws, ratings, search and offline backups",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
